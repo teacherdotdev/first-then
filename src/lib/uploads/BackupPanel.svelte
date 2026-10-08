@@ -140,13 +140,13 @@
   >
     <p>
       <strong>Everything stays on this device.</strong> Your photos, board,
-      favorites and settings are saved only in this browser on this iPad/device.
-      They are never uploaded to any server and are <strong>not</strong> synced to
-      your other devices or to iCloud.
+      favorites and settings are saved only in this browser on this device. They
+      are never uploaded to any server and are <strong>not</strong> synced to your
+      other devices or to iCloud.
     </p>
     <ul class="list-disc space-y-1 pl-5 text-sm">
       <li>
-        A new iPad, a different browser, or this app added to the Home Screen
+        A new device, a different browser, or this app added to the Home Screen
         each keep
         <strong>their own separate</strong> storage — they can't see what's saved
         here.
@@ -164,7 +164,7 @@
       </li>
       <li>
         The backup file contains your photos. Keep it somewhere private, such as
-        <em>On My iPad</em> in the Files app.
+        a private folder on your device.
       </li>
     </ul>
   </div>
@@ -191,9 +191,8 @@
       {exporting ? "Making backup…" : "Download backup (.zip)"}
     </button>
     <p class="text-sm text-slate-600">
-      Saves one file with all photos, the board, favorites and settings. On iPad
-      it goes to
-      <em>Files › Downloads</em>.
+      Saves one file with all photos, the board, favorites and settings. It goes
+      to your device's Downloads folder.
     </p>
     {#if exportError}
       <p class="text-red-700" role="alert">{exportError}</p>

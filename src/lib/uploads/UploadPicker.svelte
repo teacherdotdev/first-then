@@ -2,6 +2,7 @@
      pictures (stored only on this device). Tapping a photo calls onselect. -->
 <script lang="ts">
   import { onDestroy } from "svelte";
+  import Icon from "#lib/components/Icon.svelte";
   import type { SymbolRef, UploadRecord } from "#lib/types.ts";
   import {
     deleteUpload,
@@ -152,6 +153,10 @@
     });
   }
 
+  const tileAction =
+    "inline-flex size-9 items-center justify-center rounded-full shadow ring-1 transition";
+  const tileActionPlain = `${tileAction} bg-white/95 text-slate-600 ring-slate-200`;
+
   function selectFocus(node: HTMLInputElement) {
     node.focus();
     node.select();
@@ -165,8 +170,8 @@
     class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900"
     role="note"
   >
-    <strong>Private:</strong> Photos are saved only on this iPad/device. They
-    are never uploaded. Use
+    <strong>Private:</strong> Photos are saved only on this device. They are
+    never uploaded. Use
     <strong>Backup</strong> in Settings to move them to another device.
   </p>
 
@@ -293,63 +298,87 @@
   {#if uploads.length > 0}
     <ul class="grid grid-cols-[repeat(auto-fill,minmax(7rem,1fr))] gap-3">
       {#each uploads as record (record.id)}
-        <li class="flex flex-col items-stretch gap-1">
-          <button
-            type="button"
-            class="flex flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 focus-visible:border-blue-500 focus-visible:outline-none active:border-blue-500"
-            onclick={() =>
-              onselect({ kind: "upload", id: record.id, label: record.name })}
-          >
-            <img
-              src={objectUrlForRecord(record)}
-              alt=""
-              class="aspect-square w-full min-w-24 object-contain"
-              draggable="false"
-            />
-            <span
-              class="w-full truncate text-center text-base font-medium text-slate-900"
-              >{record.name}</span
-            >
-          </button>
-
+        <li class="photo-tile group relative">
           {#if renamingId === record.id}
-            <form class="flex flex-col gap-1" onsubmit={submitRename}>
+            <form
+              class="flex flex-col items-center gap-1 rounded-xl border-2 border-accent bg-white p-2"
+              onsubmit={submitRename}
+            >
+              <img
+                src={objectUrlForRecord(record)}
+                alt=""
+                class="aspect-square w-full min-w-24 object-contain"
+                draggable="false"
+              />
               <input
                 type="text"
                 bind:value={renameValue}
                 maxlength="60"
                 autocomplete="off"
+                enterkeyhint="done"
                 aria-label="New name for {record.name}"
-                class="min-h-11 rounded-lg border border-slate-300 px-2 text-base"
+                class="min-h-9 w-full rounded-lg border border-slate-300 px-2 text-center text-base focus:border-accent focus:outline-none"
+                onkeydown={(event) => {
+                  if (event.key === "Escape") {
+                    event.stopPropagation();
+                    renamingId = null;
+                  }
+                }}
                 use:selectFocus
               />
-              <div class="flex justify-between">
+              <div class="absolute top-1 right-1 flex gap-1">
                 <button
                   type="button"
-                  class="min-h-11 px-1 text-sm text-slate-600 underline"
-                  onclick={() => (renamingId = null)}>Cancel</button
+                  class={tileActionPlain}
+                  onclick={() => (renamingId = null)}
+                  aria-label="Cancel renaming"
                 >
+                  <Icon name="close" class="size-4" />
+                </button>
                 <button
                   type="submit"
-                  class="min-h-11 px-1 text-sm font-semibold text-blue-700 underline"
-                  >Save</button
+                  class="{tileAction} bg-accent text-white ring-accent hover:bg-accent-dark"
+                  aria-label="Save name"
                 >
+                  <Icon name="check" class="size-4" />
+                </button>
               </div>
             </form>
           {:else}
-            <div class="flex justify-between text-sm text-slate-500">
+            <button
+              type="button"
+              class="flex w-full flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 transition hover:border-accent focus-visible:border-accent focus-visible:outline-none active:scale-95"
+              onclick={() =>
+                onselect({ kind: "upload", id: record.id, label: record.name })}
+            >
+              <img
+                src={objectUrlForRecord(record)}
+                alt=""
+                class="aspect-square w-full min-w-24 object-contain"
+                draggable="false"
+              />
+              <span
+                class="w-full truncate text-center text-base font-medium text-slate-900"
+                >{record.name}</span
+              >
+            </button>
+            <div class="tile-actions absolute top-1 right-1 flex gap-1">
               <button
                 type="button"
-                class="min-h-11 px-1 underline"
+                class={tileActionPlain}
                 onclick={() => startRename(record)}
-                aria-label="Rename {record.name}">Rename</button
+                aria-label="Rename {record.name}"
               >
+                <Icon name="pencil" class="size-4" />
+              </button>
               <button
                 type="button"
-                class="min-h-11 px-1 underline"
+                class="{tileActionPlain} hover:bg-red-50 hover:text-red-600"
                 onclick={() => confirmDelete(record)}
-                aria-label="Delete {record.name}">Delete</button
+                aria-label="Delete {record.name}"
               >
+                <Icon name="trash" class="size-4" />
+              </button>
             </div>
           {/if}
         </li>
@@ -357,3 +386,19 @@
     </ul>
   {/if}
 </div>
+
+<style>
+  /* Rename/delete icons appear on hover with a mouse, and stay visible on
+     touch screens, which have no hover. */
+  @media (hover: hover) {
+    .tile-actions {
+      opacity: 0;
+      transition: opacity 120ms ease-out;
+    }
+
+    .photo-tile:hover .tile-actions,
+    .photo-tile:focus-within .tile-actions {
+      opacity: 1;
+    }
+  }
+</style>

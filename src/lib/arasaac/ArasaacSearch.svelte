@@ -120,7 +120,7 @@
   function submit(event: SubmitEvent) {
     event.preventDefault();
     run(query, language);
-    // Hide the on-screen keyboard so the results are visible on the iPad.
+    // Hide the on-screen keyboard so the results are visible on tablets.
     input?.blur();
   }
 

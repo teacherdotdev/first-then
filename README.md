@@ -1,6 +1,6 @@
 # First / Then
 
-A simple digital FIRST / THEN board for iPad, built for teachers of students with
+A simple digital FIRST / THEN board for tablets and other devices, built for teachers of students with
 high support needs. Pick an AAC symbol (from [ARASAAC](https://arasaac.org)) or one
 of your own photos for each side; tap the FIRST picture to mark it done.
 
@@ -8,7 +8,7 @@ of your own photos for each side; tap the FIRST picture to mark it done.
   `localStorage`; uploaded photos live in IndexedDB. Nothing is uploaded.
 - **Moving devices:** Settings → _Download backup (.zip)_, then _Restore from
   backup_ on the new device. The zip holds `manifest.json` plus `images/`.
-- **Supported:** iPadOS 15.4+ Safari (any iPad on the latest iPadOS 15 or newer).
+- **Supported:** Safari 15.4+ and current Chrome, Edge and Firefox.
 
 ## Development
 

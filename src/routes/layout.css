@@ -26,7 +26,7 @@
   button,
   a,
   [role="tab"] {
-    /* No double-tap-to-zoom delay on iPad. */
+    /* No double-tap-to-zoom delay on touch screens. */
     touch-action: manipulation;
   }
 

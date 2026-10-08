@@ -10,7 +10,7 @@
   let hovering = $state(false);
   /** Reached with the keyboard, so tabbing through opens it too. */
   let focused = $state(false);
-  /** Left open by a tap, which is what an iPad has instead of a hover. */
+  /** Left open by a tap, which is what a touch screen has instead of a hover. */
   let pinned = $state(false);
 
   let menu: HTMLDivElement;

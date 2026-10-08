@@ -4,7 +4,7 @@ import { sveltekit } from "@sveltejs/kit/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  // Teachers use older classroom iPads; keep the output runnable on iOS 15 Safari.
+  // Teachers use older classroom tablets; keep the output runnable on iOS 15 Safari.
   build: { target: ["es2020", "safari15"] },
   plugins: [
     tailwindcss(),
