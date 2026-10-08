@@ -72,7 +72,7 @@
   <li class="relative">
     <button
       type="button"
-      class="flex aspect-[4/5] w-full flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 transition hover:border-board-pink active:scale-95"
+      class="flex aspect-[4/5] w-full flex-col items-center gap-1 rounded-xl border-2 border-slate-200 bg-white p-2 transition hover:border-accent active:scale-95"
       onclick={() => onselect(ref)}
       aria-label={ref.label || "Symbol with no word"}
     >
@@ -120,7 +120,7 @@
         tabindex={tab === t.id ? 0 : -1}
         class="-mb-px inline-flex min-h-12 shrink-0 items-center gap-2 rounded-t-xl border-2 px-4 text-base font-semibold whitespace-nowrap {tab ===
         t.id
-          ? 'border-slate-200 border-b-white bg-white text-board-pink-dark'
+          ? 'border-slate-200 border-b-white bg-white text-accent-dark'
           : 'border-transparent text-slate-600 hover:bg-slate-100'}"
         onclick={() => show(t.id)}
         onkeydown={(event) => onTabKeydown(event, i)}
@@ -149,14 +149,14 @@
           <div class="flex flex-wrap justify-center gap-3">
             <button
               type="button"
-              class="inline-flex min-h-12 items-center gap-2 rounded-full bg-board-pink px-5 font-semibold text-white"
+              class="inline-flex min-h-12 items-center gap-2 rounded-full bg-accent px-5 font-semibold text-white"
               onclick={() => show("search", true)}
             >
               <Icon name="search" class="size-5" /> Search symbols
             </button>
             <button
               type="button"
-              class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-board-pink px-5 font-semibold text-board-pink-dark"
+              class="inline-flex min-h-12 items-center gap-2 rounded-full border-2 border-accent px-5 font-semibold text-accent-dark"
               onclick={() => show("photos", true)}
             >
               <Icon name="photo" class="size-5" /> My photos

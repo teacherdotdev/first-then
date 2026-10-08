@@ -1,4 +1,4 @@
-<!-- One grey panel of the board: big heading, white symbol box, small teacher controls. -->
+<!-- One card of the board: big heading, white symbol box, small teacher controls. -->
 <script lang="ts">
   import type { SlotName, SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
@@ -32,7 +32,7 @@
   const label = $derived(symbol?.label ?? "");
 
   const control =
-    "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-white/70 px-3.5 text-base font-semibold text-slate-700 shadow-sm transition active:bg-white";
+    "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-slate-100 px-3.5 text-base font-semibold text-slate-600 transition active:bg-slate-200";
 </script>
 
 {#snippet picture(s: SymbolRef)}
@@ -43,7 +43,7 @@
   </span>
   {#if s.label}
     <span
-      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,4.5vw),3.25rem)] leading-tight font-bold break-words text-black"
+      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,4.5vw),3.25rem)] leading-tight font-bold break-words text-slate-900"
     >
       {s.label}
     </span>
@@ -51,12 +51,12 @@
 {/snippet}
 
 <section
-  class="flex min-h-0 min-w-0 flex-col rounded-[clamp(0.75rem,2vmin,1.5rem)] bg-board-panel p-[clamp(0.5rem,2vmin,1.25rem)]"
+  class="flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200"
   aria-labelledby={headingId}
 >
   <h2
     id={headingId}
-    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2.5rem,min(10vmin,8vw),7.5rem)] leading-none font-black tracking-wide break-words text-black uppercase"
+    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2.5rem,min(10vmin,8vw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase"
   >
     {heading}
   </h2>
@@ -65,7 +65,7 @@
     {#if !symbol}
       <button
         type="button"
-        class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[clamp(0.75rem,2.5vmin,2rem)] border-4 border-dashed border-white bg-white/90 text-slate-400 shadow-sm transition active:scale-[0.98]"
+        class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[clamp(0.75rem,2.5vmin,2rem)] border-[3px] border-dashed border-slate-300 bg-slate-50 text-slate-400 transition active:scale-[0.98] active:bg-slate-100"
         onclick={onpick}
         aria-label="Choose a symbol for {heading}"
       >
@@ -75,7 +75,7 @@
     {:else if ontoggledone}
       <button
         type="button"
-        class="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] shadow-sm transition active:scale-[0.98]"
+        class="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] transition active:scale-[0.98]"
         onclick={ontoggledone}
         aria-pressed={done}
         aria-label={done
@@ -89,7 +89,7 @@
             aria-hidden="true"
           >
             <span
-              class="flex aspect-square w-[min(70%,22rem)] items-center justify-center rounded-full border-[clamp(0.3rem,1vmin,0.6rem)] border-white bg-done-green text-white shadow-xl"
+              class="flex aspect-square w-[min(70%,22rem)] items-center justify-center rounded-full border-[clamp(0.3rem,1vmin,0.6rem)] border-white bg-done-green text-white shadow-lg"
             >
               <Icon name="check" class="size-3/4 [stroke-width:3]" />
             </span>
@@ -98,7 +98,7 @@
       </button>
     {:else}
       <div
-        class="flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] shadow-sm"
+        class="flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)]"
       >
         {@render picture(symbol)}
       </div>

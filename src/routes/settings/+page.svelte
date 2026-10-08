@@ -18,12 +18,14 @@
   <title>Settings · First / Then</title>
 </svelte:head>
 
-<div class="min-h-screen-safe bg-slate-100">
-  <header class="sticky top-0 z-10 bg-board-pink text-white shadow">
+<div class="min-h-screen-safe bg-board-bg">
+  <header
+    class="sticky top-0 z-10 border-b border-slate-200 bg-white text-slate-800"
+  >
     <div class="mx-auto flex max-w-3xl items-center gap-2 px-2 py-2">
       <a
         href={resolve("/")}
-        class="inline-flex min-h-11 items-center gap-1 rounded-full pr-4 pl-2 font-semibold active:bg-white/20"
+        class="inline-flex min-h-11 items-center gap-1 rounded-full pr-4 pl-2 font-semibold text-slate-600 active:bg-slate-100"
       >
         <Icon name="back" class="size-6" />
         Back to board
@@ -46,7 +48,7 @@
           <span class="font-semibold">Left side</span>
           <input
             type="text"
-            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-board-pink focus:outline-none"
+            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
             value={app.settings.firstHeading}
             placeholder={DEFAULT_SETTINGS.firstHeading}
             maxlength={MAX_HEADING_LENGTH}
@@ -59,7 +61,7 @@
           <span class="font-semibold">Right side</span>
           <input
             type="text"
-            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-board-pink focus:outline-none"
+            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
             value={app.settings.thenHeading}
             placeholder={DEFAULT_SETTINGS.thenHeading}
             maxlength={MAX_HEADING_LENGTH}
@@ -71,7 +73,7 @@
       </div>
       <button
         type="button"
-        class="mt-3 min-h-11 rounded-full px-4 font-semibold text-board-pink-dark hover:bg-pink-50"
+        class="mt-3 min-h-11 rounded-full px-4 font-semibold text-accent-dark hover:bg-pink-50"
         onclick={() =>
           app.updateSettings({
             firstHeading: DEFAULT_SETTINGS.firstHeading,
@@ -93,7 +95,7 @@
             <label
               class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-6 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
                 .settings.language === lang.id
-                ? 'bg-board-pink text-white shadow'
+                ? 'bg-accent text-white shadow'
                 : 'text-slate-700'}"
             >
               <input

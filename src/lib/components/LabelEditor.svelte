@@ -48,7 +48,7 @@
         autocomplete="off"
         autocapitalize="off"
         enterkeyhint="done"
-        class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl focus:border-board-pink focus:outline-none"
+        class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl focus:border-accent focus:outline-none"
       />
       <span class="text-sm text-slate-500">Leave empty to show no word.</span>
     </label>
@@ -62,7 +62,7 @@
       </button>
       <button
         type="submit"
-        class="min-h-12 rounded-full bg-board-pink px-6 font-semibold text-white active:bg-board-pink-dark"
+        class="min-h-12 rounded-full bg-accent px-6 font-semibold text-white active:bg-accent-dark"
       >
         Save
       </button>

@@ -45,14 +45,14 @@
 </svelte:head>
 
 <main
-  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-pink px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))]"
+  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-bg px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))]"
 >
   <h1 class="sr-only">First / Then board</h1>
 
   <nav class="flex shrink-0 items-center justify-end gap-2" aria-label="Board">
     <button
       type="button"
-      class="inline-flex h-11 items-center gap-2 rounded-full bg-white/20 px-4 text-base font-semibold text-white transition active:bg-white/35 disabled:opacity-50"
+      class="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-base font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 disabled:opacity-40"
       onclick={clearBoard}
       disabled={isEmpty}
     >
@@ -61,7 +61,7 @@
     </button>
     <a
       href={resolve("/settings")}
-      class="inline-flex size-11 items-center justify-center rounded-full bg-white/20 text-white transition active:bg-white/35"
+      class="inline-flex size-11 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100"
       aria-label="Settings"
     >
       <Icon name="gear" class="size-6" />

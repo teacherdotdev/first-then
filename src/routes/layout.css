@@ -1,10 +1,10 @@
 @import "tailwindcss";
 
 @theme {
-  /* Colors of the laminated paper board. */
-  --color-board-pink: #ec1c8c;
-  --color-board-pink-dark: #c10e6f;
-  --color-board-panel: #d6d6d6;
+  /* Calm, low-stimulation palette: neutral board, a single soft accent. */
+  --color-board-bg: #f1f5f9;
+  --color-accent: #db2777;
+  --color-accent-dark: #be185d;
   --color-done-green: #16a34a;
 
   --font-board:
