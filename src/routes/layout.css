@@ -1,1 +1,61 @@
 @import "tailwindcss";
+
+@theme {
+  /* Colors of the laminated paper board. */
+  --color-board-pink: #ec1c8c;
+  --color-board-pink-dark: #c10e6f;
+  --color-board-panel: #d6d6d6;
+  --color-done-green: #16a34a;
+
+  --font-board:
+    "Arial Rounded MT Bold", "Helvetica Neue", Helvetica, Arial, system-ui,
+    sans-serif;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-slate-50 text-slate-900 antialiased;
+    font-family: var(--font-board);
+  }
+
+  button,
+  a,
+  [role="tab"] {
+    /* No double-tap-to-zoom delay on iPad. */
+    touch-action: manipulation;
+  }
+
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  img {
+    -webkit-touch-callout: none;
+  }
+
+  :focus-visible {
+    outline: 3px solid #1d4ed8;
+    outline-offset: 2px;
+  }
+}
+
+/* Full-viewport height that also works on Safari versions without dvh. */
+@utility h-screen-safe {
+  height: 100vh;
+  @supports (height: 100dvh) {
+    height: 100dvh;
+  }
+}
+
+@utility min-h-screen-safe {
+  min-height: 100vh;
+  @supports (height: 100dvh) {
+    min-height: 100dvh;
+  }
+}
