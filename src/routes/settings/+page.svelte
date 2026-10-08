@@ -148,7 +148,20 @@
       <BackupPanel />
     </section>
 
-    <footer class="px-1 pb-6 text-sm text-slate-600">
+    <footer class="flex flex-col gap-3 px-1 pb-6 text-sm text-slate-600">
+      <p class="flex flex-wrap items-center gap-x-4 gap-y-2 font-semibold">
+        <a
+          href="https://teacher.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="inline-flex items-center gap-2 hover:underline"
+        >
+          <img src="/teacher-dev-logo.svg" alt="" width="20" height="20" />
+          Built by teacher.dev
+        </a>
+        <a href={resolve("/about")} class="hover:underline">About</a>
+        <a href={resolve("/privacy")} class="hover:underline">Privacy</a>
+      </p>
       <Attribution />
     </footer>
   </main>

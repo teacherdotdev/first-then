@@ -1,6 +1,7 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
   import Board from "#lib/components/Board.svelte";
+  import BrandMenu from "#lib/components/BrandMenu.svelte";
   import Icon from "#lib/components/Icon.svelte";
   import LabelEditor from "#lib/components/LabelEditor.svelte";
   import SymbolPicker from "#lib/components/SymbolPicker.svelte";
@@ -49,10 +50,11 @@
 >
   <h1 class="sr-only">First / Then board</h1>
 
-  <nav class="flex shrink-0 items-center justify-end gap-2" aria-label="Board">
+  <nav class="flex shrink-0 items-center gap-2" aria-label="Board">
+    <BrandMenu />
     <button
       type="button"
-      class="inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-base font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 disabled:opacity-40"
+      class="ml-auto inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-base font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 disabled:opacity-40"
       onclick={clearBoard}
       disabled={isEmpty}
     >

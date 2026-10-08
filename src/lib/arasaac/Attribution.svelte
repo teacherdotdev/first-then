@@ -1,5 +1,13 @@
 <!-- Required ARASAAC license credit (CC BY-NC-SA), per https://arasaac.org/terms-of-use -->
-<p class="text-xs leading-snug text-slate-500">
+<script lang="ts">
+  let {
+    class: className = "text-xs leading-snug text-slate-500",
+  }: {
+    class?: string;
+  } = $props();
+</script>
+
+<p class={className}>
   The pictographic symbols used are the property of the Government of Aragón and
   have been created by Sergio Palao for
   <a
