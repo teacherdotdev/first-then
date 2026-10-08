@@ -19,7 +19,7 @@ bun install
 bun run check && bun run lint && bun run build
 ```
 
-Analytics: Cloudflare Web Analytics loads only when `PUBLIC_CF_BEACON_TOKEN` is set
+Analytics: Cloudflare Web Analytics loads only when `CF_BEACON_TOKEN` is set
 at build time (declared in `src/env.ts`). Set it on the **Production** environment in
 Vercel only, so local and preview builds count no visits.
 

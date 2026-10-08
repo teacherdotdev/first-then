@@ -1,7 +1,7 @@
 import { defineEnvVars } from "@sveltejs/kit/env";
 
 export const variables = defineEnvVars({
-  PUBLIC_CF_BEACON_TOKEN: {
+  CF_BEACON_TOKEN: {
     public: true,
     // Baked into the prerendered HTML at build time; there is no server.
     static: true,
