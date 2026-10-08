@@ -89,7 +89,7 @@
             aria-hidden="true"
           >
             <span
-              class="flex aspect-square w-[min(70%,22rem)] items-center justify-center rounded-full border-[clamp(0.3rem,1vmin,0.6rem)] border-white bg-done-green text-white shadow-lg"
+              class="flex aspect-square w-[min(40%,12rem)] items-center justify-center rounded-full border-[clamp(0.2rem,0.6vmin,0.4rem)] border-white bg-done-green text-white shadow-lg"
             >
               <Icon name="check" class="size-3/4 [stroke-width:3]" />
             </span>
