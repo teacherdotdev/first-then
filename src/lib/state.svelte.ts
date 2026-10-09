@@ -3,12 +3,14 @@
 // that writes these keys and reloads the page is picked up automatically.
 import {
   DEFAULT_SETTINGS,
-  EMPTY_BOARD,
+  emptyBoard,
+  MAX_SLOTS,
+  SLOT_COUNTS,
   STORAGE_KEYS,
   symbolKey,
   type BoardState,
   type Settings,
-  type SlotName,
+  type SlotCount,
   type SymbolRef,
 } from "#lib/types.ts";
 
@@ -41,29 +43,53 @@ function toSymbolRef(value: unknown): SymbolRef | null {
 }
 
 function toBoard(value: unknown): BoardState {
-  if (!isRecord(value)) return { ...EMPTY_BOARD };
-  const first = toSymbolRef(value.first);
+  if (!isRecord(value)) return emptyBoard();
+  // Boards saved before 3- and 4-step layouts were `{ first, then, firstDone }`.
+  const rawSlots: unknown[] = Array.isArray(value.slots)
+    ? value.slots
+    : [value.first, value.then];
+  const rawDone: unknown[] = Array.isArray(value.done)
+    ? value.done
+    : [value.firstDone];
+  const slots = Array.from({ length: MAX_SLOTS }, (_, i) =>
+    toSymbolRef(rawSlots[i]),
+  );
   return {
-    first,
-    then: toSymbolRef(value.then),
-    firstDone: first !== null && value.firstDone === true,
+    slots,
+    done: slots.map((ref, i) => ref !== null && rawDone[i] === true),
   };
 }
 
+function isSlotCount(value: unknown): value is SlotCount {
+  return SLOT_COUNTS.includes(value as SlotCount);
+}
+
+function toHeadings(value: unknown, n: SlotCount): string[] {
+  const list = Array.isArray(value) ? value : [];
+  return DEFAULT_SETTINGS.headings[n].map((fallback, i) =>
+    typeof list[i] === "string"
+      ? (list[i] as string).slice(0, MAX_HEADING_LENGTH)
+      : fallback,
+  );
+}
+
 function toSettings(value: unknown): Settings {
-  if (!isRecord(value)) return { ...DEFAULT_SETTINGS };
+  const raw: Record<string, unknown> = isRecord(value) ? value : {};
+  const saved = isRecord(raw.headings) ? raw.headings : {};
+  // Settings saved before 3- and 4-step layouts had two flat heading fields.
+  const legacy = [raw.firstHeading, raw.thenHeading];
   return {
-    firstHeading:
-      typeof value.firstHeading === "string"
-        ? value.firstHeading.slice(0, MAX_HEADING_LENGTH)
-        : DEFAULT_SETTINGS.firstHeading,
-    thenHeading:
-      typeof value.thenHeading === "string"
-        ? value.thenHeading.slice(0, MAX_HEADING_LENGTH)
-        : DEFAULT_SETTINGS.thenHeading,
+    slotCount: isSlotCount(raw.slotCount)
+      ? raw.slotCount
+      : DEFAULT_SETTINGS.slotCount,
+    headings: {
+      2: toHeadings(saved[2] ?? legacy, 2),
+      3: toHeadings(saved[3], 3),
+      4: toHeadings(saved[4], 4),
+    },
     language:
-      value.language === "en" || value.language === "es"
-        ? value.language
+      raw.language === "en" || raw.language === "es"
+        ? raw.language
         : DEFAULT_SETTINGS.language,
   };
 }
@@ -84,6 +110,13 @@ function toSymbolList(value: unknown, max = Infinity): SymbolRef[] {
     if (list.length >= max) break;
   }
   return list;
+}
+
+/** Copy of `list` with one item swapped (`Array#with` is too new for older iPads). */
+function replaceAt<T>(list: T[], index: number, item: T): T[] {
+  const copy = [...list];
+  copy[index] = item;
+  return copy;
 }
 
 // ---------------------------------------------------------------------------
@@ -115,14 +148,12 @@ function save(key: string, value: unknown): void {
 
 // ---------------------------------------------------------------------------
 
-/** The heading text to show, falling back to the default when left blank. */
-export function headingFor(settings: Settings, slot: SlotName): string {
-  const value = slot === "first" ? settings.firstHeading : settings.thenHeading;
-  const fallback =
-    slot === "first"
-      ? DEFAULT_SETTINGS.firstHeading
-      : DEFAULT_SETTINGS.thenHeading;
-  return value.trim() || fallback;
+/** The heading text to show over a step, falling back to the default when left blank. */
+export function headingFor(settings: Settings, index: number): string {
+  const n = settings.slotCount;
+  return (
+    settings.headings[n][index]?.trim() || DEFAULT_SETTINGS.headings[n][index]
+  );
 }
 
 class AppState {
@@ -139,29 +170,30 @@ class AppState {
 
   // --- board -------------------------------------------------------------
 
+  /** The steps currently shown on the board. */
+  get visibleSlots(): (SymbolRef | null)[] {
+    return this.board.slots.slice(0, this.settings.slotCount);
+  }
+
+  /** Every shown step but the last (the reward) can be tapped as done. */
+  canMarkDone(index: number): boolean {
+    return index < this.settings.slotCount - 1;
+  }
+
   /** Put a symbol in a slot and remember it in recents. */
-  setSlot(slot: SlotName, ref: SymbolRef): void {
+  setSlot(index: number, ref: SymbolRef): void {
     const placed = { ...ref };
-    if (slot === "first") {
-      this.board = { ...this.board, first: placed, firstDone: false };
-    } else {
-      this.board = { ...this.board, then: placed };
-    }
-    this.#saveBoard();
+    this.#writeSlot(index, placed);
     this.addRecent(placed);
   }
 
-  clearSlot(slot: SlotName): void {
-    if (slot === "first") {
-      this.board = { ...this.board, first: null, firstDone: false };
-    } else {
-      this.board = { ...this.board, then: null };
-    }
-    this.#saveBoard();
+  clearSlot(index: number): void {
+    this.#writeSlot(index, null);
   }
 
+  /** Empties every slot, including ones hidden by a smaller layout. */
   clearBoard(): void {
-    this.board = { ...EMPTY_BOARD };
+    this.board = emptyBoard();
     this.#saveBoard();
   }
 
@@ -171,18 +203,22 @@ class AppState {
     this.#saveBoard();
   }
 
-  toggleFirstDone(): void {
-    if (!this.board.first) return;
-    this.board = { ...this.board, firstDone: !this.board.firstDone };
+  toggleDone(index: number): void {
+    if (!this.board.slots[index] || !this.canMarkDone(index)) return;
+    const done = replaceAt(this.board.done, index, !this.board.done[index]);
+    this.board = { ...this.board, done };
     this.#saveBoard();
   }
 
   /** Change the word under a slot's symbol (also remembered in recents/favorites). */
-  setLabel(slot: SlotName, label: string): void {
-    const ref = this.board[slot];
+  setLabel(index: number, label: string): void {
+    const ref = this.board.slots[index];
     if (!ref) return;
     const clean = label.trim().slice(0, MAX_LABEL_LENGTH);
-    this.board = { ...this.board, [slot]: { ...ref, label: clean } };
+    this.board = {
+      ...this.board,
+      slots: replaceAt(this.board.slots, index, { ...ref, label: clean }),
+    };
     this.#saveBoard();
 
     const key = symbolKey(ref);
@@ -232,12 +268,12 @@ class AppState {
     const matches = (item: SymbolRef | null) =>
       item !== null && symbolKey(item) === key;
 
-    if (matches(this.board.first) || matches(this.board.then)) {
-      const firstGone = matches(this.board.first);
+    if (this.board.slots.some(matches)) {
       this.board = {
-        first: firstGone ? null : this.board.first,
-        then: matches(this.board.then) ? null : this.board.then,
-        firstDone: firstGone ? false : this.board.firstDone,
+        slots: this.board.slots.map((item) => (matches(item) ? null : item)),
+        done: this.board.done.map(
+          (done, i) => done && !matches(this.board.slots[i]),
+        ),
       };
       this.#saveBoard();
     }
@@ -258,7 +294,32 @@ class AppState {
     save(STORAGE_KEYS.settings, $state.snapshot(this.settings));
   }
 
+  /** Change one heading word in the current layout. */
+  setHeading(index: number, text: string): void {
+    const n = this.settings.slotCount;
+    const headings = $state.snapshot(this.settings.headings);
+    headings[n] = replaceAt(headings[n], index, text);
+    this.updateSettings({ headings });
+  }
+
+  /** Put the current layout's headings back to the defaults. */
+  resetHeadings(): void {
+    const n = this.settings.slotCount;
+    const headings = $state.snapshot(this.settings.headings);
+    headings[n] = [...DEFAULT_SETTINGS.headings[n]];
+    this.updateSettings({ headings });
+  }
+
   // --- persistence ----------------------------------------------------------
+
+  /** Replace one slot; a new or removed symbol always starts not done. */
+  #writeSlot(index: number, ref: SymbolRef | null): void {
+    this.board = {
+      slots: replaceAt(this.board.slots, index, ref),
+      done: replaceAt(this.board.done, index, false),
+    };
+    this.#saveBoard();
+  }
 
   #saveBoard(): void {
     save(STORAGE_KEYS.board, $state.snapshot(this.board));

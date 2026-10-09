@@ -1,11 +1,11 @@
 <!-- One card of the board: big heading, white symbol box, small teacher controls. -->
 <script lang="ts">
-  import type { SlotName, SymbolRef } from "#lib/types.ts";
+  import type { SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
   import SymbolImage from "./SymbolImage.svelte";
 
   let {
-    name,
+    index,
     heading,
     symbol,
     done = false,
@@ -15,10 +15,11 @@
     oneditlabel,
     ontogglefavorite,
   }: {
-    name: SlotName;
+    /** Position on the board, 0 = first step. */
+    index: number;
     heading: string;
     symbol: SymbolRef | null;
-    /** FIRST only: show the big green checkmark. */
+    /** Show the big green checkmark (only used with `ontoggledone`). */
     done?: boolean;
     favorite?: boolean;
     onpick: () => void;
@@ -28,7 +29,7 @@
     ontogglefavorite: () => void;
   } = $props();
 
-  const headingId = $derived(`slot-heading-${name}`);
+  const headingId = $derived(`slot-heading-${index}`);
   const label = $derived(symbol?.label ?? "");
 
   const control =
@@ -43,20 +44,21 @@
   </span>
   {#if s.label}
     <span
-      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,4.5vw),3.25rem)] leading-tight font-bold break-words text-slate-900"
+      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,9cqw),3.25rem)] leading-tight font-bold break-words text-slate-900"
     >
       {s.label}
     </span>
   {/if}
 {/snippet}
 
+<!-- A size container: the text scales with the card, however many share the row. -->
 <section
-  class="flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200"
+  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200"
   aria-labelledby={headingId}
 >
   <h2
     id={headingId}
-    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2.5rem,min(10vmin,8vw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase"
+    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2rem,min(10vmin,16cqw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase"
   >
     {heading}
   </h2>
@@ -85,11 +87,12 @@
         {@render picture(symbol)}
         {#if done}
           <span
-            class="done-overlay absolute inset-0 flex items-center justify-center bg-white/45"
+            class="done-overlay @container-size absolute inset-0 flex items-center justify-center bg-white/45"
             aria-hidden="true"
           >
+            <!-- Sized by both sides so short cards (3+ steps on a phone) keep their word visible. -->
             <span
-              class="flex aspect-square w-[min(40%,12rem)] items-center justify-center rounded-full border-[clamp(0.2rem,0.6vmin,0.4rem)] border-white bg-done-green text-white shadow-lg"
+              class="flex size-[min(40cqw,55cqh,12rem)] items-center justify-center rounded-full border-[clamp(0.2rem,0.6vmin,0.4rem)] border-white bg-done-green text-white shadow-lg"
             >
               <Icon name="check" class="size-3/4 [stroke-width:3]" />
             </span>
@@ -107,7 +110,7 @@
 
   <!-- Teacher controls: kept small and quiet so the board stays clean. -->
   <div
-    class="flex min-h-12 shrink-0 items-end justify-center gap-2 pt-2"
+    class="flex min-h-12 shrink-0 items-end justify-center gap-2 pt-2 @max-[10rem]:gap-1"
     class:invisible={!symbol}
     aria-hidden={!symbol}
   >
@@ -119,7 +122,7 @@
         aria-label="Change {heading} symbol"
       >
         <Icon name="swap" class="size-5" />
-        <span>Change</span>
+        <span class="@max-[14rem]:sr-only">Change</span>
       </button>
       <button
         type="button"
@@ -128,7 +131,7 @@
         aria-label="Edit {heading} word"
       >
         <Icon name="pencil" class="size-5" />
-        <span class="max-[420px]:sr-only">Word</span>
+        <span class="@max-[25rem]:sr-only">Word</span>
       </button>
       <button
         type="button"

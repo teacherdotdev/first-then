@@ -3,13 +3,17 @@
   import Attribution from "#lib/arasaac/Attribution.svelte";
   import Icon from "#lib/components/Icon.svelte";
   import { app, MAX_HEADING_LENGTH } from "#lib/state.svelte.ts";
-  import { DEFAULT_SETTINGS, type Language } from "#lib/types.ts";
+  import { DEFAULT_SETTINGS, SLOT_COUNTS, type Language } from "#lib/types.ts";
   import BackupPanel from "#lib/uploads/BackupPanel.svelte";
 
   const languages: { id: Language; label: string }[] = [
     { id: "en", label: "English" },
     { id: "es", label: "Español" },
   ];
+
+  const defaultHeadings = $derived(
+    DEFAULT_SETTINGS.headings[app.settings.slotCount],
+  );
 
   let recentsCleared = $state(false);
 </script>
@@ -35,52 +39,64 @@
   </header>
 
   <main class="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6">
+    <section class="rounded-2xl bg-white p-5 shadow-sm">
+      <fieldset>
+        <legend class="mb-3 text-lg font-bold">Steps on the board</legend>
+        <div class="inline-flex rounded-full bg-slate-100 p-1">
+          {#each SLOT_COUNTS as count (count)}
+            <label
+              class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-4 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
+                .settings.slotCount === count
+                ? 'bg-accent text-white shadow'
+                : 'text-slate-700'}"
+            >
+              <input
+                type="radio"
+                name="slot-count"
+                class="sr-only"
+                value={count}
+                checked={app.settings.slotCount === count}
+                onchange={() => app.updateSettings({ slotCount: count })}
+              />
+              {count} steps
+            </label>
+          {/each}
+        </div>
+      </fieldset>
+    </section>
+
     <section
       class="rounded-2xl bg-white p-5 shadow-sm"
       aria-labelledby="headings-title"
     >
       <h2 id="headings-title" class="text-lg font-bold">Board headings</h2>
-      <p class="mb-4 text-slate-600">
-        The big words over each side of the board.
-      </p>
-      <div class="grid gap-4 sm:grid-cols-2">
-        <label class="flex flex-col gap-1">
-          <span class="font-semibold">Left side</span>
-          <input
-            type="text"
-            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
-            value={app.settings.firstHeading}
-            placeholder={DEFAULT_SETTINGS.firstHeading}
-            maxlength={MAX_HEADING_LENGTH}
-            autocomplete="off"
-            oninput={(e) =>
-              app.updateSettings({ firstHeading: e.currentTarget.value })}
-          />
-        </label>
-        <label class="flex flex-col gap-1">
-          <span class="font-semibold">Right side</span>
-          <input
-            type="text"
-            class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
-            value={app.settings.thenHeading}
-            placeholder={DEFAULT_SETTINGS.thenHeading}
-            maxlength={MAX_HEADING_LENGTH}
-            autocomplete="off"
-            oninput={(e) =>
-              app.updateSettings({ thenHeading: e.currentTarget.value })}
-          />
-        </label>
+      <p class="mb-4 text-slate-600">The big words over each step.</p>
+      <div
+        class="grid gap-4 {app.settings.slotCount === 3
+          ? 'sm:grid-cols-3'
+          : 'sm:grid-cols-2'}"
+      >
+        {#each defaultHeadings as placeholder, index (index)}
+          <label class="flex flex-col gap-1">
+            <span class="font-semibold">Step {index + 1}</span>
+            <input
+              type="text"
+              class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
+              value={app.settings.headings[app.settings.slotCount][index]}
+              {placeholder}
+              maxlength={MAX_HEADING_LENGTH}
+              autocomplete="off"
+              oninput={(e) => app.setHeading(index, e.currentTarget.value)}
+            />
+          </label>
+        {/each}
       </div>
       <button
         type="button"
         class="mt-3 min-h-11 rounded-full px-4 font-semibold text-accent-dark hover:bg-pink-50"
-        onclick={() =>
-          app.updateSettings({
-            firstHeading: DEFAULT_SETTINGS.firstHeading,
-            thenHeading: DEFAULT_SETTINGS.thenHeading,
-          })}
+        onclick={() => app.resetHeadings()}
       >
-        Reset to {DEFAULT_SETTINGS.firstHeading} / {DEFAULT_SETTINGS.thenHeading}
+        Reset to {defaultHeadings.join(" / ")}
       </button>
     </section>
 
