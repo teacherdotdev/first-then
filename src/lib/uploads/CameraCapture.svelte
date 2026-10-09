@@ -1,5 +1,7 @@
 <!-- In-page camera viewfinder for devices whose browser can't open the system camera
-     from a file input (laptops, desktops). The frame never leaves the device. -->
+     from a file input (laptops, desktops). The frame never leaves the device. The
+     preview is deliberately not mirrored, so it matches the saved photo and any
+     text in view reads the right way round. -->
 <script lang="ts">
   import { onDestroy, onMount } from "svelte";
   import Icon from "#lib/components/Icon.svelte";
@@ -13,7 +15,6 @@
   let stream: MediaStream | null = null;
   let destroyed = false;
   let ready = $state(false);
-  let mirrored = $state(true);
   let error = $state<string | null>(null);
 
   function friendlyError(err: unknown): string {
@@ -51,9 +52,6 @@
         return;
       }
       stream = s;
-      // Mirror the preview like a mirror for a selfie camera; the saved photo isn't.
-      mirrored =
-        s.getVideoTracks()[0]?.getSettings().facingMode !== "environment";
       if (!video) return stop();
       video.srcObject = s;
       await video.play();
@@ -104,7 +102,6 @@
       <video
         bind:this={video}
         class="mx-auto max-h-[50vh] w-full object-contain"
-        class:-scale-x-100={mirrored}
         playsinline
         muted
         onplaying={() => (ready = true)}
