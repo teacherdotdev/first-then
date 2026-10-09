@@ -1,5 +1,6 @@
 <!-- One card of the board: big heading, white symbol box, small teacher controls. -->
 <script lang="ts">
+  import { app } from "#lib/state.svelte.ts";
   import type { SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
   import SymbolImage from "./SymbolImage.svelte";
@@ -33,18 +34,18 @@
   const label = $derived(symbol?.label ?? "");
 
   const control =
-    "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-slate-100 px-3.5 text-base font-semibold text-slate-600 transition active:bg-slate-200";
+    "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-slate-100 px-3.5 text-base font-semibold text-slate-600 transition active:bg-slate-200 hc:bg-neutral-800 hc:text-neutral-200 hc:active:bg-neutral-700";
 </script>
 
 {#snippet picture(s: SymbolRef)}
   <span class="relative block min-h-0 w-full flex-1">
     <span class="absolute inset-0 flex items-center justify-center">
-      <SymbolImage symbol={s} />
+      <SymbolImage symbol={s} lineArt={app.settings.highContrast} />
     </span>
   </span>
   {#if s.label}
     <span
-      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,9cqw),3.25rem)] leading-tight font-bold break-words text-slate-900"
+      class="block w-full shrink-0 pt-1 text-center text-[clamp(1.5rem,min(5.5vmin,9cqw),3.25rem)] leading-tight font-bold break-words text-slate-900 hc:text-white"
     >
       {s.label}
     </span>
@@ -53,12 +54,12 @@
 
 <!-- A size container: the text scales with the card, however many share the row. -->
 <section
-  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200"
+  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200 hc:bg-black hc:shadow-none hc:ring-2 hc:ring-neutral-500"
   aria-labelledby={headingId}
 >
   <h2
     id={headingId}
-    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2rem,min(10vmin,16cqw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase"
+    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2rem,min(10vmin,16cqw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase hc:text-hc-bright"
   >
     {heading}
   </h2>
@@ -67,7 +68,7 @@
     {#if !symbol}
       <button
         type="button"
-        class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[clamp(0.75rem,2.5vmin,2rem)] border-[3px] border-dashed border-slate-300 bg-slate-50 text-slate-400 transition active:scale-[0.98] active:bg-slate-100"
+        class="flex h-full w-full flex-col items-center justify-center gap-2 rounded-[clamp(0.75rem,2.5vmin,2rem)] border-[3px] border-dashed border-slate-300 bg-slate-50 text-slate-400 transition active:scale-[0.98] active:bg-slate-100 hc:border-neutral-400 hc:bg-black hc:text-neutral-300 hc:active:bg-neutral-900"
         onclick={onpick}
         aria-label="Choose a symbol for {heading}"
       >
@@ -77,7 +78,7 @@
     {:else if ontoggledone}
       <button
         type="button"
-        class="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] transition active:scale-[0.98]"
+        class="relative flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] transition active:scale-[0.98] hc:bg-black"
         onclick={ontoggledone}
         aria-pressed={done}
         aria-label={done
@@ -87,7 +88,7 @@
         {@render picture(symbol)}
         {#if done}
           <span
-            class="done-overlay @container-size absolute inset-0 flex items-center justify-center bg-white/45"
+            class="done-overlay @container-size absolute inset-0 flex items-center justify-center bg-white/45 hc:bg-black/55"
             aria-hidden="true"
           >
             <!-- Sized by both sides so short cards (3+ steps on a phone) keep their word visible. -->
@@ -101,7 +102,7 @@
       </button>
     {:else}
       <div
-        class="flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)]"
+        class="flex h-full w-full flex-col items-center justify-center overflow-hidden rounded-[clamp(0.75rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2.5vmin,1.5rem)] hc:bg-black"
       >
         {@render picture(symbol)}
       </div>

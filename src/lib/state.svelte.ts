@@ -91,6 +91,7 @@ function toSettings(value: unknown): Settings {
       raw.language === "en" || raw.language === "es"
         ? raw.language
         : DEFAULT_SETTINGS.language,
+    highContrast: raw.highContrast === true,
   };
 }
 

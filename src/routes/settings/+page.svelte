@@ -15,6 +15,11 @@
     DEFAULT_SETTINGS.headings[app.settings.slotCount],
   );
 
+  const contrasts = [
+    { high: false, label: "Standard" },
+    { high: true, label: "High contrast" },
+  ];
+
   let recentsCleared = $state(false);
 </script>
 
@@ -123,6 +128,36 @@
                 onchange={() => app.updateSettings({ language: lang.id })}
               />
               {lang.label}
+            </label>
+          {/each}
+        </div>
+      </fieldset>
+    </section>
+
+    <section class="rounded-2xl bg-white p-5 shadow-sm">
+      <fieldset>
+        <legend class="text-lg font-bold">Board colors</legend>
+        <p class="mb-4 text-slate-600">
+          High contrast shows the board on black, with symbols as bright yellow
+          line drawings. Photos stay in full color.
+        </p>
+        <div class="inline-flex rounded-full bg-slate-100 p-1">
+          {#each contrasts as option (option.label)}
+            <label
+              class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-6 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
+                .settings.highContrast === option.high
+                ? 'bg-accent text-white shadow'
+                : 'text-slate-700'}"
+            >
+              <input
+                type="radio"
+                name="contrast"
+                class="sr-only"
+                checked={app.settings.highContrast === option.high}
+                onchange={() =>
+                  app.updateSettings({ highContrast: option.high })}
+              />
+              {option.label}
             </label>
           {/each}
         </div>

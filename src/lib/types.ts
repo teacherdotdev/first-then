@@ -43,6 +43,8 @@ export interface Settings {
   headings: Record<SlotCount, string[]>;
   /** Language used for ARASAAC search and keywords. */
   language: Language;
+  /** Board shown on black, with ARASAAC symbols as bright line drawings. */
+  highContrast: boolean;
 }
 
 /** A photo or picture the teacher uploaded, stored only on this device. */
@@ -71,6 +73,7 @@ export const DEFAULT_SETTINGS: Settings = {
     4: ["FIRST", "NEXT", "THEN", "LAST"],
   },
   language: "en",
+  highContrast: false,
 };
 
 export function emptyBoard(): BoardState {

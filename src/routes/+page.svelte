@@ -49,7 +49,8 @@
 </svelte:head>
 
 <main
-  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-bg px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))]"
+  data-contrast={app.settings.highContrast ? "high" : undefined}
+  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-bg px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))] hc:bg-black"
 >
   <h1 class="sr-only">First / Then board</h1>
 
@@ -57,7 +58,7 @@
     <BrandMenu />
     <button
       type="button"
-      class="ml-auto inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-base font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 disabled:opacity-40"
+      class="ml-auto inline-flex h-11 items-center gap-2 rounded-full bg-white px-4 text-base font-semibold text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 disabled:opacity-40 hc:bg-neutral-800 hc:text-neutral-200 hc:ring-neutral-600 hc:active:bg-neutral-700"
       onclick={clearBoard}
       disabled={isEmpty}
     >
@@ -66,7 +67,7 @@
     </button>
     <a
       href={resolve("/settings")}
-      class="inline-flex size-11 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100"
+      class="inline-flex size-11 items-center justify-center rounded-full bg-white text-slate-600 shadow-sm ring-1 ring-slate-200 transition active:bg-slate-100 hc:bg-neutral-800 hc:text-neutral-200 hc:ring-neutral-600 hc:active:bg-neutral-700"
       aria-label="Settings"
     >
       <Icon name="gear" class="size-6" />
