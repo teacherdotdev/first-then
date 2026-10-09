@@ -1,5 +1,5 @@
-// Paints people's skin in tones ARASAAC's renderer can't draw (the deeper tones in
-// `appearance.ts`).
+// Makes pictograms with a non-default skin or hair color. ARASAAC's renderer draws
+// its own colors; the deeper skin tones in `appearance.ts` are painted here.
 //
 // ARASAAC recolors a pictogram by swapping its skin color, so its `light` and `dark`
 // renders differ only in the skin, including the shading and the anti-aliased edges
@@ -9,13 +9,11 @@
 // repaints the skin exactly and leaves every other pixel as it was.
 //
 // Both renders are fetched with CORS (ARASAAC sends `Access-Control-Allow-Origin: *`)
-// so the canvas can be read back. Results are kept as object URLs for this session.
+// so the canvas can be read back. Callers cache the results (see `saved.ts`).
 import { pictogramUrl } from "./api.ts";
-import { skinSwatch, type PictogramLook } from "./appearance.ts";
+import { needsRecolor, skinSwatch, type PictogramLook } from "./appearance.ts";
 
-/** Each entry is a ~40 KB PNG; generous so a long search never evicts what's shown. */
-const CACHE_SIZE = 300;
-/** Recolors at once, so the first search results aren't stuck behind the last. */
+/** Pictures made at once, so the first search results aren't stuck behind the last. */
 const MAX_CONCURRENT = 4;
 
 type Rgb = [number, number, number];
@@ -38,7 +36,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function paint(id: number, look: PictogramLook): Promise<string> {
+async function paint(id: number, look: PictogramLook): Promise<Blob> {
   const target = rgb(skinSwatch(look.skin ?? "light").hex);
   const [light, dark] = await Promise.all([
     loadImage(pictogramUrl(id, 500, { hair: look.hair })),
@@ -75,7 +73,13 @@ async function paint(id: number, look: PictogramLook): Promise<string> {
     canvas.toBlob(resolve, "image/png"),
   );
   if (!blob) throw new Error("Couldn't encode the recolored picture");
-  return URL.createObjectURL(blob);
+  return blob;
+}
+
+async function download(id: number, look: PictogramLook): Promise<Blob> {
+  const res = await fetch(pictogramUrl(id, 500, look));
+  if (!res.ok) throw new Error(`ARASAAC renderer replied ${res.status}`);
+  return res.blob();
 }
 
 // --- a small queue so a 120-result search doesn't start 240 downloads at once ---
@@ -96,32 +100,15 @@ async function limited<T>(task: () => Promise<T>): Promise<T> {
   }
 }
 
-const cache = new Map<string, Promise<string>>();
-
 /**
- * Object URL of pictogram `id` drawn with `look`, for skin tones that `needsRecolor`.
- * Rejects if either ARASAAC render fails to load.
+ * PNG of pictogram `id` drawn with `look` (a non-default skin or hair color), from
+ * ARASAAC's renderer or painted here. Rejects if ARASAAC can't be reached.
  */
-export function recoloredUrl(id: number, look: PictogramLook): Promise<string> {
-  const key = `${id}:${look.skin ?? ""}:${look.hair ?? ""}`;
-  const cached = cache.get(key);
-  if (cached) {
-    cache.delete(key);
-    cache.set(key, cached);
-    return cached;
-  }
-
-  const promise = limited(() => paint(id, look));
-  cache.set(key, promise);
-  // Let a failed recolor be tried again later (e.g. after reconnecting).
-  promise.catch(() => {
-    if (cache.get(key) === promise) cache.delete(key);
-  });
-
-  if (cache.size > CACHE_SIZE) {
-    const [oldestKey, oldest] = cache.entries().next().value!;
-    cache.delete(oldestKey);
-    oldest.then((url) => URL.revokeObjectURL(url)).catch(() => {});
-  }
-  return promise;
+export function recolorPictogram(
+  id: number,
+  look: PictogramLook,
+): Promise<Blob> {
+  return limited(() =>
+    needsRecolor(look) ? paint(id, look) : download(id, look),
+  );
 }

@@ -1,12 +1,11 @@
 <!--
   Renders a SymbolRef's picture: an ARASAAC pictogram or a photo from this device.
   With `lineArt`, pictograms are drawn as bright lines for the high-contrast board.
-  Pictograms with skin tones ARASAAC can't draw are recolored on this device.
+  Pictograms with a non-default skin or hair color come from `#lib/arasaac/saved`.
 -->
 <script lang="ts">
   import { lineArtUrl, pictogramUrl } from "#lib/arasaac/api.ts";
-  import { needsRecolor } from "#lib/arasaac/appearance.ts";
-  import { recoloredUrl } from "#lib/arasaac/recolor.ts";
+  import { recoloredUrl } from "#lib/arasaac/saved.ts";
   import { uploadObjectUrl, uploadsVersion } from "#lib/uploads/db.ts";
   import type { SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
@@ -23,9 +22,9 @@
     class?: string;
   } = $props();
 
-  /** A photo, or a pictogram recolored on this device. */
+  /** A photo, or a recolored pictogram (both loaded from this device when stored). */
   const madeHere = $derived(
-    symbol.kind === "upload" || (!lineArt && needsRecolor(symbol)),
+    symbol.kind === "upload" || (!lineArt && !!(symbol.skin || symbol.hair)),
   );
 
   /** For `madeHere` pictures: undefined while loading, null when missing or failed. */
@@ -72,7 +71,7 @@
       : symbol.kind === "arasaac"
         ? lineArt
           ? lineArtUrl(symbol.id)
-          : pictogramUrl(symbol.id, size, symbol)
+          : pictogramUrl(symbol.id, size)
         : null,
   );
   const alt = $derived(symbol.label || "Symbol");
