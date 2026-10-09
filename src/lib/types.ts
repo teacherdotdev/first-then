@@ -41,8 +41,19 @@ export interface BoardState {
 
 export type Language = "en" | "es";
 
-/** ARASAAC's five skin colors for people in pictograms (see `#lib/arasaac/appearance`). */
-export type SkinTone = "light" | "lightGolden" | "medium" | "tan" | "dark";
+/**
+ * Skin colors for people in pictograms: ARASAAC's five, then three deeper tones the
+ * app paints itself (see `#lib/arasaac/appearance`).
+ */
+export type SkinTone =
+  | "light"
+  | "lightGolden"
+  | "medium"
+  | "tan"
+  | "dark"
+  | "darker"
+  | "deep"
+  | "deepest";
 
 /** ARASAAC's seven hair colors for people in pictograms. */
 export type HairColor =

@@ -1,9 +1,13 @@
-// Skin and hair colors ARASAAC can draw people with.
+// Skin and hair colors for people in ARASAAC pictograms.
 //
 // The renderer (`GET /v1/pictograms/{id}?skin=…&hair=…`) takes ARASAAC's own names
 // (`api`), which we keep out of the UI and out of saved data. The hex values are what
 // the renderer paints (verified against the live API), used for the swatches. The plain
 // static PNGs are drawn with `light` skin and `brown` hair.
+//
+// ARASAAC's darkest skin is a medium brown, so the deeper tones (no `api`) are painted
+// in the browser instead (see `recolor.ts`). They continue ARASAAC's `dark` in even
+// steps of lightness, staying light enough that black outlines and faces still show.
 import {
   DEFAULT_SETTINGS,
   type Appearance,
@@ -14,8 +18,8 @@ import {
 
 export interface Swatch<Id extends string> {
   id: Id;
-  /** ARASAAC's name for this color in the renderer's query string. */
-  api: string;
+  /** ARASAAC's name for this color in the renderer's query string; none if we paint it. */
+  api?: string;
   hex: string;
   /** Dark enough that a checkmark on it should be white. */
   dark: boolean;
@@ -57,7 +61,25 @@ export const SKIN_TONES: readonly Swatch<SkinTone>[] = [
     api: "black",
     hex: "#A65C17",
     dark: true,
-    label: { en: "Dark", es: "Oscura" },
+    label: { en: "Brown", es: "Marrón" },
+  },
+  {
+    id: "darker",
+    hex: "#844B23",
+    dark: true,
+    label: { en: "Dark brown", es: "Marrón oscuro" },
+  },
+  {
+    id: "deep",
+    hex: "#673C1F",
+    dark: true,
+    label: { en: "Deep brown", es: "Marrón intenso" },
+  },
+  {
+    id: "deepest",
+    hex: "#4C2E19",
+    dark: true,
+    label: { en: "Darkest brown", es: "Marrón muy oscuro" },
   },
 ];
 
@@ -133,6 +155,11 @@ export function isHairColor(value: unknown): value is HairColor {
 
 /** The recoloring one pictogram needs: only valid, non-default colors are kept. */
 export type PictogramLook = Partial<Appearance>;
+
+/** Whether a look needs a skin tone ARASAAC's renderer can't draw. */
+export function needsRecolor(look: PictogramLook): boolean {
+  return look.skin !== undefined && !skinSwatch(look.skin).api;
+}
 
 export function pictogramLook(skin: unknown, hair: unknown): PictogramLook {
   const look: PictogramLook = {};

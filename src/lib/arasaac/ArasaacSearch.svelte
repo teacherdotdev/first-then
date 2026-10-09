@@ -3,7 +3,13 @@
   import { untrack } from "svelte";
   import type { Appearance, Language, SymbolRef } from "#lib/types.ts";
   import AppearancePicker from "./AppearancePicker.svelte";
-  import { hairSwatch, pictogramLook, skinSwatch } from "./appearance.ts";
+  import SymbolImage from "#lib/components/SymbolImage.svelte";
+  import {
+    hairSwatch,
+    needsRecolor,
+    pictogramLook,
+    skinSwatch,
+  } from "./appearance.ts";
   import {
     ArasaacSearchError,
     canSearchMore,
@@ -244,6 +250,7 @@
       lang={language}
     >
       {#each results as result (result.id)}
+        {@const look = lookFor(result)}
         <li>
           <button
             type="button"
@@ -251,15 +258,28 @@
             aria-label={result.keyword}
             class="flex h-full w-full flex-col items-center gap-1 rounded-2xl border-2 border-slate-200 bg-white p-2 text-slate-900 active:border-sky-600 active:bg-sky-50"
           >
-            <img
-              src={pictogramUrl(result.id, 300, lookFor(result))}
-              alt={result.keyword}
-              loading="lazy"
-              decoding="async"
-              width="300"
-              height="300"
-              class="aspect-square h-auto w-full object-contain"
-            />
+            {#if needsRecolor(look)}
+              <span class="block aspect-square w-full">
+                <SymbolImage
+                  symbol={{
+                    kind: "arasaac",
+                    id: result.id,
+                    label: result.keyword,
+                    ...look,
+                  }}
+                />
+              </span>
+            {:else}
+              <img
+                src={pictogramUrl(result.id, 300, look)}
+                alt={result.keyword}
+                loading="lazy"
+                decoding="async"
+                width="300"
+                height="300"
+                class="aspect-square h-auto w-full object-contain"
+              />
+            {/if}
             <span class="line-clamp-2 text-center text-lg leading-tight"
               >{result.keyword}</span
             >

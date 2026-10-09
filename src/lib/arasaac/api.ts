@@ -261,17 +261,20 @@ export function canSearchMore(query: string, language: Language): boolean {
 
 /**
  * URL of a pictogram PNG suitable for an <img src>. With a non-default skin or hair
- * color it comes from ARASAAC's renderer, which is always 500 px.
+ * color it comes from ARASAAC's renderer, which is always 500 px. Skin tones the
+ * renderer can't draw are left out: use `recoloredUrl` for those (`needsRecolor`).
  */
 export function pictogramUrl(
   id: number,
   size: 300 | 500 | 2500 = 500,
   look: PictogramLook = {},
 ): string {
-  if (look.skin || look.hair) {
+  const skin = look.skin && skinSwatch(look.skin).api;
+  const hair = look.hair && hairSwatch(look.hair).api;
+  if (skin || hair) {
     const params = new URLSearchParams();
-    if (look.skin) params.set("skin", skinSwatch(look.skin).api);
-    if (look.hair) params.set("hair", hairSwatch(look.hair).api);
+    if (skin) params.set("skin", skin);
+    if (hair) params.set("hair", hair);
     return `${API}/${id}?${params}`;
   }
   return `https://static.arasaac.org/pictograms/${id}/${id}_${size}.png`;
