@@ -226,6 +226,31 @@ class AppState {
     this.#saveFavorites();
   }
 
+  /** Take a symbol off the board and out of recents and favorites (e.g. a deleted photo). */
+  forgetSymbol(ref: SymbolRef): void {
+    const key = symbolKey(ref);
+    const matches = (item: SymbolRef | null) =>
+      item !== null && symbolKey(item) === key;
+
+    if (matches(this.board.first) || matches(this.board.then)) {
+      const firstGone = matches(this.board.first);
+      this.board = {
+        first: firstGone ? null : this.board.first,
+        then: matches(this.board.then) ? null : this.board.then,
+        firstDone: firstGone ? false : this.board.firstDone,
+      };
+      this.#saveBoard();
+    }
+    if (this.recents.some(matches)) {
+      this.recents = this.recents.filter((item) => !matches(item));
+      this.#saveRecents();
+    }
+    if (this.favorites.some(matches)) {
+      this.favorites = this.favorites.filter((item) => !matches(item));
+      this.#saveFavorites();
+    }
+  }
+
   // --- settings -------------------------------------------------------------
 
   updateSettings(patch: Partial<Settings>): void {

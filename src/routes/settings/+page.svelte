@@ -30,7 +30,7 @@
         <Icon name="back" class="size-6" />
         Back to board
       </a>
-      <h1 class="ml-auto pr-3 text-xl font-bold">Settings</h1>
+      <h1 class="sr-only">Settings</h1>
     </div>
   </header>
 
@@ -148,8 +148,12 @@
       <BackupPanel />
     </section>
 
-    <footer class="flex flex-col gap-3 px-1 pb-6 text-sm text-slate-600">
-      <p class="flex flex-wrap items-center gap-x-4 gap-y-2 font-semibold">
+    <footer
+      class="flex flex-col items-center gap-3 px-1 pb-6 text-center text-sm text-slate-600"
+    >
+      <p
+        class="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 font-semibold"
+      >
         <a
           href="https://teacher.dev"
           target="_blank"

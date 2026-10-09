@@ -105,7 +105,7 @@
 
 <Modal title="Choose {heading}" {onclose}>
   <div
-    class="flex shrink-0 gap-1 overflow-x-auto border-b border-slate-200 px-2 pt-2"
+    class="flex shrink-0 [scrollbar-width:none] gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-200 px-2 pt-2 [&::-webkit-scrollbar]:hidden"
     role="tablist"
     aria-label="Where to find a symbol"
   >
@@ -232,7 +232,7 @@
           onclick={onremove}
         >
           <Icon name="trash" class="size-5" />
-          Remove from {heading}
+          Clear {heading}
         </button>
       {/if}
     </div>

@@ -13,7 +13,8 @@
     | "swap"
     | "trash"
     | "back"
-    | "undo";
+    | "undo"
+    | "camera";
 </script>
 
 <script lang="ts">
@@ -73,5 +74,10 @@
   {:else if name === "undo"}
     <path d="M9 14 4 9l5-5" />
     <path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" />
+  {:else if name === "camera"}
+    <path
+      d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.8l1.5-2.2h6.4L16.7 6h1.8A2.5 2.5 0 0 1 21 8.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 17.5z"
+    />
+    <circle cx="12" cy="12.5" r="3.5" />
   {/if}
 </svg>
