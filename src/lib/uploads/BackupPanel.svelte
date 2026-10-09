@@ -1,6 +1,7 @@
-<!-- Settings section: privacy explanation + download / restore of a backup .zip. -->
+<!-- Settings rows: where photos are kept, plus download / restore of a backup .zip. -->
 <script lang="ts">
   import { onMount } from "svelte";
+  import Icon from "#lib/components/Icon.svelte";
   import { uploadStats, uploadsVersion } from "./db.ts";
   import {
     BackupError,
@@ -134,123 +135,111 @@
   }
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="py-4">
   <div
-    class="flex flex-col gap-2 rounded-lg border border-sky-200 bg-sky-50 px-4 py-3 text-slate-800"
+    class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6"
   >
-    <p>
-      <strong>Everything stays on this device.</strong> Your photos, board,
-      favorites and settings are saved only in this browser on this device. They
-      are never uploaded to any server and are <strong>not</strong> synced to your
-      other devices or to iCloud.
-    </p>
-    <ul class="list-disc space-y-1 pl-5 text-sm">
-      <li>
-        A new device, a different browser, or this app added to the Home Screen
-        each keep
-        <strong>their own separate</strong> storage — they can't see what's saved
-        here.
-      </li>
-      <li>
-        Clearing Safari's history or website data deletes your photos and board.
-        Safari may also clear website data for sites that haven't been opened in
-        a while, so keep a recent backup.
-      </li>
-      <li>
-        To move to a new device (without re-adding every photo), download a
-        backup here, then open this app on the new device and choose <em
-          >Restore from backup</em
-        >.
-      </li>
-      <li>
-        The backup file contains your photos. Keep it somewhere private, such as
-        a private folder on your device.
-      </li>
-    </ul>
-  </div>
-
-  <p class="text-slate-700" role="status">
-    {#if statsError}
-      Stored photos couldn't be counted.
-    {:else if stats}
-      {plural(stats.count, "photo")} stored on this device{stats.count > 0
-        ? ` (about ${formatBytes(stats.bytes)})`
-        : ""}.
-    {:else}
-      Counting stored photos…
-    {/if}
-  </p>
-
-  <div class="flex flex-col gap-2">
-    <button
-      type="button"
-      class="min-h-12 rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white disabled:opacity-60"
-      onclick={onDownload}
-      disabled={exporting}
-    >
-      {exporting ? "Making backup…" : "Download backup (.zip)"}
-    </button>
-    <p class="text-sm text-slate-600">
-      Saves one file with all photos, the board, favorites and settings. It goes
-      to your device's Downloads folder.
-    </p>
-    {#if exportError}
-      <p class="text-red-700" role="alert">{exportError}</p>
-    {/if}
-    {#if ready}
-      <div
-        class="rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-900"
-      >
-        <p>Backup ready: {ready.filename} ({formatBytes(ready.size)}).</p>
-        <p class="mt-1 text-sm">If nothing was saved, use one of these:</p>
-        <div class="mt-2 flex flex-wrap gap-2">
-          <a
-            href={ready.url}
-            download={ready.filename}
-            class="inline-flex min-h-11 items-center rounded-lg border border-green-600 bg-white px-4 font-semibold text-green-800"
-            >Save backup file</a
-          >
-          {#if ready.file}
-            <button
-              type="button"
-              class="min-h-11 rounded-lg border border-green-600 bg-white px-4 font-semibold text-green-800"
-              onclick={onShare}>Share / Save to Files…</button
-            >
-          {/if}
-        </div>
-      </div>
-    {/if}
-  </div>
-
-  <div class="flex flex-col gap-2">
-    <label
-      class="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border-2 border-blue-600 bg-white px-5 py-3 text-lg font-semibold text-blue-700 focus-within:ring-4 focus-within:ring-blue-300 {restoring
-        ? 'pointer-events-none opacity-60'
-        : ''}"
-    >
-      {restoring ? "Restoring…" : "Restore from backup"}
-      <input
-        type="file"
-        accept=".zip,application/zip,application/x-zip-compressed"
-        class="sr-only"
-        onchange={onRestorePicked}
-        disabled={restoring}
-      />
-    </label>
-    <p class="text-sm text-slate-600">
-      Choose a <em>first-then-backup-….zip</em> file. Photos in the backup are added
-      to the ones already here (nothing is deleted). You'll be asked before the board,
-      favorites and settings are replaced.
-    </p>
-    {#if restoreMessage}
-      <p
-        class={restoreMessage.kind === "ok"
-          ? "rounded-lg border border-green-300 bg-green-50 px-4 py-3 text-green-900"
-          : "rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-red-800"}
-        role={restoreMessage.kind === "ok" ? "status" : "alert"}
-      >
-        {restoreMessage.text}
+    <div>
+      <h3 class="font-semibold">Saved only on this device</h3>
+      <p class="text-sm text-slate-600" role="status">
+        {#if statsError}
+          Stored photos couldn't be counted.
+        {:else if stats}
+          {plural(stats.count, "photo")}{stats.count > 0
+            ? ` (${formatBytes(stats.bytes)})`
+            : ""}. Not uploaded or synced, so keep a backup.
+        {:else}
+          Counting stored photos…
+        {/if}
       </p>
-    {/if}
+    </div>
+    <div class="flex shrink-0 flex-wrap gap-2">
+      <button
+        type="button"
+        class="min-h-11 rounded-full bg-accent px-4 font-semibold text-white disabled:opacity-60"
+        onclick={onDownload}
+        disabled={exporting}
+      >
+        {exporting ? "Making backup…" : "Download backup"}
+      </button>
+      <label
+        class="inline-flex min-h-11 cursor-pointer items-center rounded-full border-2 border-slate-300 px-4 font-semibold text-slate-700 focus-within:outline-3 focus-within:outline-blue-700 hover:bg-slate-50 {restoring
+          ? 'pointer-events-none opacity-60'
+          : ''}"
+      >
+        {restoring ? "Restoring…" : "Restore"}
+        <input
+          type="file"
+          accept=".zip,application/zip,application/x-zip-compressed"
+          class="sr-only"
+          onchange={onRestorePicked}
+          disabled={restoring}
+        />
+      </label>
+    </div>
   </div>
+
+  {#if exportError}
+    <p class="mt-3 text-red-700" role="alert">{exportError}</p>
+  {/if}
+  {#if ready}
+    <div
+      class="mt-3 flex flex-col gap-2 rounded-xl bg-green-50 px-4 py-3 text-green-900 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="text-sm">
+        Backup ready ({formatBytes(ready.size)}). Didn't download?
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <a
+          href={ready.url}
+          download={ready.filename}
+          class="inline-flex min-h-11 items-center rounded-full border border-green-600 bg-white px-4 font-semibold text-green-800"
+          >Save file</a
+        >
+        {#if ready.file}
+          <button
+            type="button"
+            class="min-h-11 rounded-full border border-green-600 bg-white px-4 font-semibold text-green-800"
+            onclick={onShare}>Share…</button
+          >
+        {/if}
+      </div>
+    </div>
+  {/if}
+  {#if restoreMessage}
+    <p
+      class="mt-3 rounded-xl px-4 py-3 text-sm {restoreMessage.kind === 'ok'
+        ? 'bg-green-50 text-green-900'
+        : 'bg-red-50 text-red-800'}"
+      role={restoreMessage.kind === "ok" ? "status" : "alert"}
+    >
+      {restoreMessage.text}
+    </p>
+  {/if}
 </div>
+
+<details class="group py-1">
+  <summary
+    class="flex min-h-11 cursor-pointer list-none items-center justify-between gap-2 font-semibold text-slate-700 [&::-webkit-details-marker]:hidden"
+  >
+    Good to know
+    <Icon
+      name="back"
+      class="size-5 -rotate-90 transition group-open:rotate-90"
+    />
+  </summary>
+  <ul class="list-disc space-y-1 pb-3 pl-5 text-sm text-slate-600">
+    <li>
+      Other devices, browsers and Home Screen apps each have their own storage.
+    </li>
+    <li>
+      Clearing Safari's website data deletes your photos and board. Safari may
+      also clear sites that haven't been opened in a while.
+    </li>
+    <li>
+      Restoring adds the backup's photos to these, and asks before replacing the
+      board, favorites and settings.
+    </li>
+    <li>The backup file contains your photos, so keep it private.</li>
+  </ul>
+</details>

@@ -6,6 +6,12 @@
   import { DEFAULT_SETTINGS, SLOT_COUNTS, type Language } from "#lib/types.ts";
   import BackupPanel from "#lib/uploads/BackupPanel.svelte";
 
+  interface Choice {
+    label: string;
+    checked: boolean;
+    select: () => void;
+  }
+
   const languages: { id: Language; label: string }[] = [
     { id: "en", label: "English" },
     { id: "es", label: "Español" },
@@ -15,13 +21,68 @@
     DEFAULT_SETTINGS.headings[app.settings.slotCount],
   );
 
-  const contrasts = [
-    { high: false, label: "Standard" },
-    { high: true, label: "High contrast" },
-  ];
+  const headingColumns = {
+    2: "grid-cols-2",
+    3: "grid-cols-3",
+    4: "grid-cols-2 sm:grid-cols-4",
+  };
 
-  let recentsCleared = $state(false);
+  const stepChoices: Choice[] = $derived(
+    SLOT_COUNTS.map((count) => ({
+      label: `${count} steps`,
+      checked: app.settings.slotCount === count,
+      select: () => app.updateSettings({ slotCount: count }),
+    })),
+  );
+
+  const colorChoices: Choice[] = $derived(
+    [false, true].map((high) => ({
+      label: high ? "High contrast" : "Standard",
+      checked: app.settings.highContrast === high,
+      select: () => app.updateSettings({ highContrast: high }),
+    })),
+  );
+
+  const languageChoices: Choice[] = $derived(
+    languages.map((lang) => ({
+      label: lang.label,
+      checked: app.settings.language === lang.id,
+      select: () => app.updateSettings({ language: lang.id }),
+    })),
+  );
+
+  const card =
+    "divide-y divide-slate-100 rounded-2xl bg-white px-4 shadow-sm sm:px-5";
+  const row =
+    "flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6";
+  const sectionTitle =
+    "px-1 pb-2 text-sm font-bold tracking-wide text-slate-500 uppercase";
 </script>
+
+{#snippet segmented(name: string, labelledby: string, choices: Choice[])}
+  <div
+    role="radiogroup"
+    aria-labelledby={labelledby}
+    class="inline-flex shrink-0 self-start rounded-full bg-slate-100 p-1 sm:self-auto"
+  >
+    {#each choices as choice (choice.label)}
+      <label
+        class="relative inline-flex min-h-11 cursor-pointer items-center rounded-full px-4 font-semibold whitespace-nowrap has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {choice.checked
+          ? 'bg-accent text-white shadow'
+          : 'text-slate-700'}"
+      >
+        <input
+          type="radio"
+          {name}
+          class="sr-only"
+          checked={choice.checked}
+          onchange={choice.select}
+        />
+        {choice.label}
+      </label>
+    {/each}
+  </div>
+{/snippet}
 
 <svelte:head>
   <title>Settings · First / Then</title>
@@ -43,160 +104,98 @@
     </div>
   </header>
 
-  <main class="mx-auto flex max-w-3xl flex-col gap-5 px-4 py-6">
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <fieldset>
-        <legend class="mb-3 text-lg font-bold">Steps on the board</legend>
-        <div class="inline-flex rounded-full bg-slate-100 p-1">
-          {#each SLOT_COUNTS as count (count)}
-            <label
-              class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-4 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
-                .settings.slotCount === count
-                ? 'bg-accent text-white shadow'
-                : 'text-slate-700'}"
-            >
-              <input
-                type="radio"
-                name="slot-count"
-                class="sr-only"
-                value={count}
-                checked={app.settings.slotCount === count}
-                onchange={() => app.updateSettings({ slotCount: count })}
-              />
-              {count} steps
-            </label>
-          {/each}
+  <main class="mx-auto flex max-w-3xl flex-col gap-6 px-4 py-5">
+    <section aria-labelledby="board-title">
+      <h2 id="board-title" class={sectionTitle}>Board</h2>
+      <div class={card}>
+        <div class={row}>
+          <h3 id="steps-title" class="font-semibold">Steps</h3>
+          {@render segmented("slot-count", "steps-title", stepChoices)}
         </div>
-      </fieldset>
-    </section>
 
-    <section
-      class="rounded-2xl bg-white p-5 shadow-sm"
-      aria-labelledby="headings-title"
-    >
-      <h2 id="headings-title" class="text-lg font-bold">Board headings</h2>
-      <p class="mb-4 text-slate-600">The big words over each step.</p>
-      <div
-        class="grid gap-4 {app.settings.slotCount === 3
-          ? 'sm:grid-cols-3'
-          : 'sm:grid-cols-2'}"
-      >
-        {#each defaultHeadings as placeholder, index (index)}
-          <label class="flex flex-col gap-1">
-            <span class="font-semibold">Step {index + 1}</span>
-            <input
-              type="text"
-              class="min-h-12 rounded-xl border-2 border-slate-300 px-3 text-xl font-bold uppercase focus:border-accent focus:outline-none"
-              value={app.settings.headings[app.settings.slotCount][index]}
-              {placeholder}
-              maxlength={MAX_HEADING_LENGTH}
-              autocomplete="off"
-              oninput={(e) => app.setHeading(index, e.currentTarget.value)}
-            />
-          </label>
-        {/each}
+        <div class="flex flex-col gap-3 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h3 id="headings-title" class="font-semibold">Headings</h3>
+              <p class="text-sm text-slate-600">The big word over each step.</p>
+            </div>
+            <button
+              type="button"
+              class="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-accent-dark hover:bg-pink-50"
+              onclick={() => app.resetHeadings()}
+            >
+              Reset<span class="sr-only"> headings</span>
+            </button>
+          </div>
+          <div
+            class="grid gap-2 {headingColumns[app.settings.slotCount]}"
+            role="group"
+            aria-labelledby="headings-title"
+          >
+            {#each defaultHeadings as placeholder, index (index)}
+              <input
+                type="text"
+                class="min-h-11 min-w-0 rounded-xl border-2 border-slate-300 px-3 text-lg font-bold uppercase focus:border-accent focus:outline-none"
+                aria-label="Step {index + 1} heading"
+                value={app.settings.headings[app.settings.slotCount][index]}
+                {placeholder}
+                maxlength={MAX_HEADING_LENGTH}
+                autocomplete="off"
+                oninput={(e) => app.setHeading(index, e.currentTarget.value)}
+              />
+            {/each}
+          </div>
+        </div>
+
+        <div class={row}>
+          <div>
+            <h3 id="colors-title" class="font-semibold">Colors</h3>
+            <p class="text-sm text-slate-600">
+              High contrast: yellow line drawings on black.
+            </p>
+          </div>
+          {@render segmented("contrast", "colors-title", colorChoices)}
+        </div>
       </div>
-      <button
-        type="button"
-        class="mt-3 min-h-11 rounded-full px-4 font-semibold text-accent-dark hover:bg-pink-50"
-        onclick={() => app.resetHeadings()}
-      >
-        Reset to {defaultHeadings.join(" / ")}
-      </button>
     </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <fieldset>
-        <legend class="text-lg font-bold">Symbol search language</legend>
-        <p class="mb-4 text-slate-600">
-          Words used to search ARASAAC symbols and for their default labels.
-        </p>
-        <div class="inline-flex rounded-full bg-slate-100 p-1">
-          {#each languages as lang (lang.id)}
-            <label
-              class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-6 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
-                .settings.language === lang.id
-                ? 'bg-accent text-white shadow'
-                : 'text-slate-700'}"
-            >
-              <input
-                type="radio"
-                name="language"
-                class="sr-only"
-                value={lang.id}
-                checked={app.settings.language === lang.id}
-                onchange={() => app.updateSettings({ language: lang.id })}
-              />
-              {lang.label}
-            </label>
-          {/each}
+    <section aria-labelledby="symbols-title">
+      <h2 id="symbols-title" class={sectionTitle}>Symbols</h2>
+      <div class={card}>
+        <div class={row}>
+          <div>
+            <h3 id="language-title" class="font-semibold">Search language</h3>
+            <p class="text-sm text-slate-600">
+              Also used for the words under symbols.
+            </p>
+          </div>
+          {@render segmented("language", "language-title", languageChoices)}
         </div>
-      </fieldset>
-    </section>
 
-    <section class="rounded-2xl bg-white p-5 shadow-sm">
-      <fieldset>
-        <legend class="text-lg font-bold">Board colors</legend>
-        <p class="mb-4 text-slate-600">
-          High contrast shows the board on black, with symbols as bright yellow
-          line drawings. Photos stay in full color.
-        </p>
-        <div class="inline-flex rounded-full bg-slate-100 p-1">
-          {#each contrasts as option (option.label)}
-            <label
-              class="relative inline-flex min-h-12 cursor-pointer items-center rounded-full px-6 text-lg font-semibold has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-blue-700 {app
-                .settings.highContrast === option.high
-                ? 'bg-accent text-white shadow'
-                : 'text-slate-700'}"
-            >
-              <input
-                type="radio"
-                name="contrast"
-                class="sr-only"
-                checked={app.settings.highContrast === option.high}
-                onchange={() =>
-                  app.updateSettings({ highContrast: option.high })}
-              />
-              {option.label}
-            </label>
-          {/each}
+        <div class={row}>
+          <div>
+            <h3 class="font-semibold">Recent symbols</h3>
+            <p class="text-sm text-slate-600" role="status">
+              {app.recents.length} recent, {app.favorites.length} favorites
+            </p>
+          </div>
+          <button
+            type="button"
+            class="min-h-11 shrink-0 self-start rounded-full border-2 border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50 sm:self-auto"
+            disabled={app.recents.length === 0}
+            onclick={() => app.clearRecents()}
+          >
+            Clear recents
+          </button>
         </div>
-      </fieldset>
+      </div>
     </section>
 
-    <section
-      class="rounded-2xl bg-white p-5 shadow-sm"
-      aria-labelledby="recents-title"
-    >
-      <h2 id="recents-title" class="text-lg font-bold">Recent symbols</h2>
-      <p class="mb-3 text-slate-600">
-        {app.recents.length} recent and {app.favorites.length} favorite symbols are
-        saved on this device.
-      </p>
-      <button
-        type="button"
-        class="min-h-11 rounded-full border-2 border-slate-300 px-4 font-semibold text-slate-700 hover:bg-slate-50 disabled:opacity-50"
-        disabled={app.recents.length === 0}
-        onclick={() => {
-          app.clearRecents();
-          recentsCleared = true;
-        }}
-      >
-        Clear recent symbols
-      </button>
-      <span class="ml-2 text-slate-600" role="status">
-        {recentsCleared && app.recents.length === 0 ? "Recents cleared." : ""}
-      </span>
-    </section>
-
-    <section
-      class="rounded-2xl bg-white p-5 shadow-sm"
-      aria-labelledby="backup-title"
-    >
-      <h2 id="backup-title" class="mb-3 text-lg font-bold">
-        Photos &amp; backup
-      </h2>
-      <BackupPanel />
+    <section aria-labelledby="backup-title">
+      <h2 id="backup-title" class={sectionTitle}>Photos &amp; backup</h2>
+      <div class={card}>
+        <BackupPanel />
+      </div>
     </section>
 
     <footer
