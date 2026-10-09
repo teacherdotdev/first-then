@@ -10,6 +10,10 @@ export type SymbolRef =
       id: number;
       /** Word shown under the symbol. Starts as the ARASAAC keyword; teacher may edit. */
       label: string;
+      /** Skin color of the people drawn; omitted for ARASAAC's default (or no people). */
+      skin?: SkinTone;
+      /** Hair color of the people drawn; omitted for ARASAAC's default (or no people). */
+      hair?: HairColor;
     }
   | {
       kind: "upload";
@@ -37,6 +41,19 @@ export interface BoardState {
 
 export type Language = "en" | "es";
 
+/** ARASAAC's five skin colors for people in pictograms (see `#lib/arasaac/appearance`). */
+export type SkinTone = "light" | "lightGolden" | "medium" | "tan" | "dark";
+
+/** ARASAAC's seven hair colors for people in pictograms. */
+export type HairColor =
+  "blonde" | "red" | "brown" | "darkBrown" | "black" | "gray" | "white";
+
+/** How people in ARASAAC pictograms are colored. */
+export interface Appearance {
+  skin: SkinTone;
+  hair: HairColor;
+}
+
 export interface Settings {
   slotCount: SlotCount;
   /** Header words over each step, kept separately for each layout. */
@@ -45,6 +62,8 @@ export interface Settings {
   language: Language;
   /** Board shown on black, with ARASAAC symbols as bright line drawings. */
   highContrast: boolean;
+  /** Skin and hair color a symbol search starts with (changeable per search). */
+  appearance: Appearance;
 }
 
 /** A photo or picture the teacher uploaded, stored only on this device. */
@@ -74,6 +93,8 @@ export const DEFAULT_SETTINGS: Settings = {
   },
   language: "en",
   highContrast: false,
+  // ARASAAC's own default drawing colors.
+  appearance: { skin: "light", hair: "brown" },
 };
 
 export function emptyBoard(): BoardState {
@@ -83,7 +104,15 @@ export function emptyBoard(): BoardState {
   };
 }
 
-/** Key identifying a symbol regardless of its label (for de-duping recents/favorites). */
+/**
+ * Key identifying a symbol regardless of its label (for de-duping recents/favorites).
+ * A pictogram recolored with a different skin or hair is a different symbol.
+ */
 export function symbolKey(ref: SymbolRef): string {
-  return `${ref.kind}:${ref.id}`;
+  let key = `${ref.kind}:${ref.id}`;
+  if (ref.kind === "arasaac") {
+    if (ref.skin) key += `:skin-${ref.skin}`;
+    if (ref.hair) key += `:hair-${ref.hair}`;
+  }
+  return key;
 }

@@ -1,5 +1,6 @@
 <script lang="ts">
   import { resolve } from "$app/paths";
+  import AppearancePicker from "#lib/arasaac/AppearancePicker.svelte";
   import Attribution from "#lib/arasaac/Attribution.svelte";
   import Icon from "#lib/components/Icon.svelte";
   import { app, MAX_HEADING_LENGTH } from "#lib/state.svelte.ts";
@@ -170,6 +171,21 @@
             </p>
           </div>
           {@render segmented("language", "language-title", languageChoices)}
+        </div>
+
+        <div class="flex flex-col gap-3 py-4">
+          <div>
+            <h3 class="font-semibold">People in symbols</h3>
+            <p class="text-sm text-slate-600">
+              Skin and hair color each search starts with. You can change it in
+              the search too.
+            </p>
+          </div>
+          <AppearancePicker
+            name="default-appearance"
+            value={app.settings.appearance}
+            onchange={(appearance) => app.updateSettings({ appearance })}
+          />
         </div>
 
         <div class={row}>

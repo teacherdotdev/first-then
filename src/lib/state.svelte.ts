@@ -2,6 +2,11 @@
 // Everything loads synchronously from localStorage at startup, so a backup import
 // that writes these keys and reloads the page is picked up automatically.
 import {
+  isHairColor,
+  isSkinTone,
+  pictogramLook,
+} from "#lib/arasaac/appearance.ts";
+import {
   DEFAULT_SETTINGS,
   emptyBoard,
   MAX_SLOTS,
@@ -34,7 +39,12 @@ function toSymbolRef(value: unknown): SymbolRef | null {
     typeof value.id === "number" &&
     Number.isFinite(value.id)
   ) {
-    return { kind: "arasaac", id: value.id, label };
+    return {
+      kind: "arasaac",
+      id: value.id,
+      label,
+      ...pictogramLook(value.skin, value.hair),
+    };
   }
   if (value.kind === "upload" && typeof value.id === "string" && value.id) {
     return { kind: "upload", id: value.id, label };
@@ -75,6 +85,7 @@ function toHeadings(value: unknown, n: SlotCount): string[] {
 
 function toSettings(value: unknown): Settings {
   const raw: Record<string, unknown> = isRecord(value) ? value : {};
+  const appearance = isRecord(raw.appearance) ? raw.appearance : {};
   const saved = isRecord(raw.headings) ? raw.headings : {};
   // Settings saved before 3- and 4-step layouts had two flat heading fields.
   const legacy = [raw.firstHeading, raw.thenHeading];
@@ -92,6 +103,14 @@ function toSettings(value: unknown): Settings {
         ? raw.language
         : DEFAULT_SETTINGS.language,
     highContrast: raw.highContrast === true,
+    appearance: {
+      skin: isSkinTone(appearance.skin)
+        ? appearance.skin
+        : DEFAULT_SETTINGS.appearance.skin,
+      hair: isHairColor(appearance.hair)
+        ? appearance.hair
+        : DEFAULT_SETTINGS.appearance.hair,
+    },
   };
 }
 

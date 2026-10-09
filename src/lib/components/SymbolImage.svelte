@@ -52,7 +52,7 @@
     symbol.kind === "arasaac"
       ? lineArt
         ? lineArtUrl(symbol.id)
-        : pictogramUrl(symbol.id, size)
+        : pictogramUrl(symbol.id, size, symbol)
       : (uploadUrl ?? null),
   );
   const alt = $derived(symbol.label || "Symbol");

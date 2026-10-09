@@ -16,12 +16,21 @@
 // - Black line-art versions (`{id}_nocolor_500.png`: black lines on transparent, the
 //   same image as the renderer's `?color=false`) are on `static.arasaac.org` too, but
 //   only at 500 px.
+// - People can be recolored: `GET /v1/pictograms/{id}?skin=…&hair=…` returns the PNG
+//   (500 px only, `Cache-Control: max-age=0` with an ETag). Static copies of those
+//   only appear after someone has asked the renderer for them, so we can't rely on
+//   them. Search results flag `skin`/`hair` when a pictogram has any to recolor.
 import type { Language } from "#lib/types.ts";
+import { hairSwatch, skinSwatch, type PictogramLook } from "./appearance.ts";
 
 export interface ArasaacResult {
   id: number;
   /** Best keyword for the requested language, used as the default label. */
   keyword: string;
+  /** Shows skin that can be drawn in another color. */
+  skin: boolean;
+  /** Shows hair that can be drawn in another color. */
+  hair: boolean;
 }
 
 /** Why a search failed, so the UI can show a friendly, localized message. */
@@ -59,6 +68,8 @@ interface RawPictogram {
   keywords?: RawKeyword[];
   violence?: boolean;
   sex?: boolean;
+  skin?: boolean;
+  hair?: boolean;
 }
 
 /** Trim, lower-case, collapse whitespace and drop characters that break the URL path. */
@@ -112,7 +123,14 @@ function toResult(
     if (!best || score < best.score) best = { keyword, score };
   }
   if (!best) return null;
-  return { id: p._id, keyword: best.keyword, score: best.score, order };
+  return {
+    id: p._id,
+    keyword: best.keyword,
+    skin: p.skin === true,
+    hair: p.hair === true,
+    score: best.score,
+    order,
+  };
 }
 
 /** Fetch one endpoint; 404 means "no results". */
@@ -219,7 +237,12 @@ export async function searchPictograms(
     if (r) scored.push(r);
   });
   scored.sort((a, b) => a.score - b.score || a.order - b.order);
-  const plain = scored.map(({ id, keyword }) => ({ id, keyword }));
+  const plain = scored.map(({ id, keyword, skin, hair }) => ({
+    id,
+    keyword,
+    skin,
+    hair,
+  }));
   const results = plain.slice(0, more ? MAX_RESULTS_MORE : MAX_RESULTS);
 
   remember(key, results);
@@ -236,8 +259,21 @@ export function canSearchMore(query: string, language: Language): boolean {
   return q !== "" && !cache.has(`${language}:more:${q}`);
 }
 
-/** URL of a pictogram PNG suitable for an <img src>. */
-export function pictogramUrl(id: number, size: 300 | 500 | 2500 = 500): string {
+/**
+ * URL of a pictogram PNG suitable for an <img src>. With a non-default skin or hair
+ * color it comes from ARASAAC's renderer, which is always 500 px.
+ */
+export function pictogramUrl(
+  id: number,
+  size: 300 | 500 | 2500 = 500,
+  look: PictogramLook = {},
+): string {
+  if (look.skin || look.hair) {
+    const params = new URLSearchParams();
+    if (look.skin) params.set("skin", skinSwatch(look.skin).api);
+    if (look.hair) params.set("hair", hairSwatch(look.hair).api);
+    return `${API}/${id}?${params}`;
+  }
   return `https://static.arasaac.org/pictograms/${id}/${id}_${size}.png`;
 }
 
