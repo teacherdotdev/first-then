@@ -3,6 +3,8 @@
 <script lang="ts">
   import { onDestroy } from "svelte";
   import Icon from "#lib/components/Icon.svelte";
+  import { app } from "#lib/state.svelte.ts";
+  import CameraCapture from "./CameraCapture.svelte";
   import type { SymbolRef, UploadRecord } from "#lib/types.ts";
   import {
     deleteUpload,
@@ -34,6 +36,19 @@
   let saving = $state(false);
   let saveError = $state<string | null>(null);
 
+  let addMenuOpen = $state(false);
+  let cameraOpen = $state(false);
+  let addMenu: HTMLDivElement;
+  let addButton: HTMLButtonElement;
+  let chooseInput: HTMLInputElement;
+  let cameraInput: HTMLInputElement;
+
+  // iOS and Android open the system camera straight from a file input with
+  // `capture`; other browsers ignore it, so they get the in-page viewfinder.
+  const hasSystemCamera =
+    /Android|iPhone|iPad|iPod/.test(navigator.userAgent) ||
+    (/Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints > 1);
+
   let renamingId = $state<string | null>(null);
   let renameValue = $state("");
 
@@ -58,11 +73,44 @@
     };
   });
 
-  async function onFilesPicked(event: Event) {
+  function onAddMenuKeydown(event: KeyboardEvent) {
+    if (event.key !== "Escape" || !addMenuOpen) return;
+    // Close just this popup, not the whole picker.
+    event.stopPropagation();
+    addMenuOpen = false;
+    addButton.focus();
+  }
+
+  function onDocumentPointerdown(event: PointerEvent) {
+    if (addMenuOpen && !addMenu.contains(event.target as Node))
+      addMenuOpen = false;
+  }
+
+  function chooseFromPhotos() {
+    addMenuOpen = false;
+    chooseInput.click();
+  }
+
+  function takePhoto() {
+    addMenuOpen = false;
+    if (hasSystemCamera) cameraInput.click();
+    else cameraOpen = true;
+  }
+
+  async function onFilesPicked(event: Event, fromCamera = false) {
     const input = event.currentTarget as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     // Reset so picking the same photo again still fires a change event.
     input.value = "";
+    await addFiles(files, fromCamera);
+  }
+
+  async function onCameraCapture(blob: Blob) {
+    cameraOpen = false;
+    await addFiles([blob], true);
+  }
+
+  async function addFiles(files: Blob[], fromCamera: boolean) {
     if (files.length === 0) return;
 
     saveError = null;
@@ -74,13 +122,19 @@
           key: newUploadId(),
           blob,
           previewUrl: URL.createObjectURL(blob),
-          name: nameFromFilename(file.name),
+          // Camera files get names like "image.jpg"; a plain default reads better.
+          name:
+            fromCamera || !(file instanceof File)
+              ? "Photo"
+              : nameFromFilename(file.name),
         });
       } catch (err) {
         failures.push(
           err instanceof ImageDecodeError
             ? err.message
-            : `"${file.name}" couldn't be added. Please try again.`,
+            : file instanceof File && !fromCamera
+              ? `"${file.name}" couldn't be added. Please try again.`
+              : "The photo couldn't be added. Please try again.",
         );
       } finally {
         preparing -= 1;
@@ -143,15 +197,18 @@
     if (value) await renameUpload(id, value).catch(() => {});
   }
 
-  async function confirmDelete(record: UploadRecord) {
-    const ok = confirm(
-      `Delete the photo "${record.name}" from this device?\n\nBoards that use it will show "Photo not on this device". This can't be undone unless you have a backup.`,
-    );
-    if (!ok) return;
-    await deleteUpload(record.id).catch(() => {
+  async function handleDelete(record: UploadRecord) {
+    try {
+      await deleteUpload(record.id);
+    } catch {
       alert("The photo couldn't be deleted. Please try again.");
-    });
+      return;
+    }
+    app.forgetSymbol({ kind: "upload", id: record.id, label: record.name });
   }
+
+  const addOption =
+    "flex min-h-14 w-full items-center gap-3 px-4 text-left text-lg font-semibold text-slate-800 hover:bg-blue-50 focus-visible:bg-blue-50 focus-visible:outline-none active:bg-blue-100";
 
   const tileAction =
     "inline-flex size-9 items-center justify-center rounded-full shadow ring-1 transition";
@@ -165,6 +222,8 @@
   onDestroy(clearPending);
 </script>
 
+<svelte:document onpointerdown={onDocumentPointerdown} />
+
 <div class="flex flex-col gap-4">
   <p
     class="rounded-lg border border-sky-200 bg-sky-50 px-3 py-2 text-sm text-sky-900"
@@ -175,19 +234,64 @@
     <strong>Backup</strong> in Settings to move them to another device.
   </p>
 
-  <label
-    class="flex min-h-14 cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white shadow-sm focus-within:ring-4 focus-within:ring-blue-300 active:bg-blue-700"
-  >
-    <span aria-hidden="true" class="text-2xl leading-none">+</span>
-    Add photo
+  <!-- svelte-ignore a11y_no_static_element_interactions -->
+  <div class="relative" bind:this={addMenu} onkeydown={onAddMenuKeydown}>
+    <button
+      bind:this={addButton}
+      type="button"
+      class="flex min-h-14 w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-3 text-lg font-semibold text-white shadow-sm focus-visible:ring-4 focus-visible:ring-blue-300 focus-visible:outline-none active:bg-blue-700"
+      aria-expanded={addMenuOpen}
+      aria-controls="add-photo-options"
+      onclick={() => {
+        cameraOpen = false;
+        addMenuOpen = !addMenuOpen;
+      }}
+    >
+      <span aria-hidden="true" class="text-2xl leading-none">+</span>
+      Add photo
+    </button>
+    <div
+      id="add-photo-options"
+      class="absolute top-full left-1/2 z-20 mt-2 w-64 -translate-x-1/2 divide-y divide-slate-200 overflow-hidden rounded-xl bg-white shadow-xl ring-1 ring-slate-200"
+      hidden={!addMenuOpen}
+    >
+      <button type="button" class={addOption} onclick={takePhoto}>
+        <Icon name="camera" class="size-6 text-blue-600" />
+        Take photo
+      </button>
+      <button type="button" class={addOption} onclick={chooseFromPhotos}>
+        <Icon name="photo" class="size-6 text-blue-600" />
+        Choose photo
+      </button>
+    </div>
     <input
+      bind:this={chooseInput}
       type="file"
       accept="image/*"
       multiple
       class="sr-only"
-      onchange={onFilesPicked}
+      tabindex="-1"
+      aria-hidden="true"
+      onchange={(event) => onFilesPicked(event)}
     />
-  </label>
+    <input
+      bind:this={cameraInput}
+      type="file"
+      accept="image/*"
+      capture="environment"
+      class="sr-only"
+      tabindex="-1"
+      aria-hidden="true"
+      onchange={(event) => onFilesPicked(event, true)}
+    />
+  </div>
+
+  {#if cameraOpen}
+    <CameraCapture
+      oncapture={onCameraCapture}
+      oncancel={() => (cameraOpen = false)}
+    />
+  {/if}
 
   {#if preparing > 0}
     <p class="text-center text-slate-600" role="status">
@@ -374,7 +478,7 @@
               <button
                 type="button"
                 class="{tileActionPlain} hover:bg-red-50 hover:text-red-600"
-                onclick={() => confirmDelete(record)}
+                onclick={() => handleDelete(record)}
                 aria-label="Delete {record.name}"
               >
                 <Icon name="trash" class="size-4" />
