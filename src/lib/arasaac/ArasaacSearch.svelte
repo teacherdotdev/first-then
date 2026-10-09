@@ -1,6 +1,9 @@
 <!-- Search box + results grid for ARASAAC pictograms; calls onselect with an 'arasaac' SymbolRef. -->
 <script lang="ts">
-  import type { Language, SymbolRef } from "#lib/types.ts";
+  import { untrack } from "svelte";
+  import type { Appearance, Language, SymbolRef } from "#lib/types.ts";
+  import AppearancePicker from "./AppearancePicker.svelte";
+  import { hairSwatch, pictogramLook, skinSwatch } from "./appearance.ts";
   import {
     ArasaacSearchError,
     canSearchMore,
@@ -13,8 +16,14 @@
 
   let {
     language,
+    defaultAppearance,
     onselect,
-  }: { language: Language; onselect: (ref: SymbolRef) => void } = $props();
+  }: {
+    language: Language;
+    /** Skin and hair color this search starts with; the teacher can change it here. */
+    defaultAppearance: Appearance;
+    onselect: (ref: SymbolRef) => void;
+  } = $props();
 
   const STRINGS = {
     en: {
@@ -27,6 +36,7 @@
       server: "ARASAAC isn't responding. Try again in a moment.",
       retry: "Try again",
       more: "More results",
+      appearance: "Skin & hair",
     },
     es: {
       label: "Buscar pictogramas",
@@ -39,6 +49,7 @@
       server: "ARASAAC no responde. Inténtalo de nuevo en un momento.",
       retry: "Reintentar",
       more: "Más resultados",
+      appearance: "Piel y pelo",
     },
   } as const;
 
@@ -55,6 +66,10 @@
   let moreAvailable = $state(false);
   let loadingMore = $state(false);
   let input = $state<HTMLInputElement>();
+  let appearance = $state<Appearance>(
+    untrack(() => ({ ...defaultAppearance })),
+  );
+  let appearanceOpen = $state(false);
 
   let controller: AbortController | null = null;
   /** `${language}:${query}:${more}` of the latest started search, to skip duplicates. */
@@ -124,8 +139,21 @@
     input?.blur();
   }
 
+  /** The recoloring a result needs: only pictograms with people have skin or hair. */
+  function lookFor(result: ArasaacResult) {
+    return pictogramLook(
+      result.skin ? appearance.skin : undefined,
+      result.hair ? appearance.hair : undefined,
+    );
+  }
+
   function choose(result: ArasaacResult) {
-    onselect({ kind: "arasaac", id: result.id, label: result.keyword });
+    onselect({
+      kind: "arasaac",
+      id: result.id,
+      label: result.keyword,
+      ...lookFor(result),
+    });
   }
 </script>
 
@@ -145,7 +173,42 @@
       lang={language}
       class="h-16 min-w-0 flex-1 rounded-2xl border-2 border-slate-300 bg-white px-4 text-2xl text-slate-900 placeholder:text-slate-400 focus:border-sky-600 focus:outline-none"
     />
+    <button
+      type="button"
+      aria-expanded={appearanceOpen}
+      aria-controls="search-appearance"
+      onclick={() => (appearanceOpen = !appearanceOpen)}
+      class="inline-flex h-16 shrink-0 items-center gap-2 rounded-2xl border-2 px-3 font-semibold text-slate-700 {appearanceOpen
+        ? 'border-sky-600 bg-sky-50'
+        : 'border-slate-300 bg-white'}"
+    >
+      <span class="flex -space-x-2" aria-hidden="true">
+        <span
+          class="size-7 rounded-full border-2 border-white ring-1 ring-slate-300"
+          style:background-color={skinSwatch(appearance.skin).hex}
+        ></span>
+        <span
+          class="size-7 rounded-full border-2 border-white ring-1 ring-slate-300"
+          style:background-color={hairSwatch(appearance.hair).hex}
+        ></span>
+      </span>
+      <span class="max-sm:sr-only">{t.appearance}</span>
+    </button>
   </form>
+
+  {#if appearanceOpen}
+    <div
+      id="search-appearance"
+      class="rounded-2xl border-2 border-slate-200 bg-slate-50 p-4"
+    >
+      <AppearancePicker
+        name="search-appearance"
+        {language}
+        value={appearance}
+        onchange={(next) => (appearance = next)}
+      />
+    </div>
+  {/if}
 
   <div aria-live="polite" class="text-lg text-slate-700">
     {#if status === "idle"}
@@ -189,7 +252,7 @@
             class="flex h-full w-full flex-col items-center gap-1 rounded-2xl border-2 border-slate-200 bg-white p-2 text-slate-900 active:border-sky-600 active:bg-sky-50"
           >
             <img
-              src={pictogramUrl(result.id, 300)}
+              src={pictogramUrl(result.id, 300, lookFor(result))}
               alt={result.keyword}
               loading="lazy"
               decoding="async"

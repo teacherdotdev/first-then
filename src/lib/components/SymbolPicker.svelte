@@ -203,7 +203,11 @@
       hidden={tab !== "search"}
     >
       {#if visited.search}
-        <ArasaacSearch language={app.settings.language} {onselect} />
+        <ArasaacSearch
+          language={app.settings.language}
+          defaultAppearance={app.settings.appearance}
+          {onselect}
+        />
       {/if}
     </div>
 
