@@ -13,6 +13,9 @@
 // - Images: `static.arasaac.org` serves pre-rendered PNGs (300/500/2500 px) from nginx
 //   with ETag/Last-Modified and CORS `*`; much faster and more cacheable than the
 //   dynamic `/v1/pictograms/{id}` renderer (`Cache-Control: max-age=0`).
+// - Black line-art versions (`{id}_nocolor_500.png`: black lines on transparent, the
+//   same image as the renderer's `?color=false`) are on `static.arasaac.org` too, but
+//   only at 500 px.
 import type { Language } from "#lib/types.ts";
 
 export interface ArasaacResult {
@@ -236,4 +239,9 @@ export function canSearchMore(query: string, language: Language): boolean {
 /** URL of a pictogram PNG suitable for an <img src>. */
 export function pictogramUrl(id: number, size: 300 | 500 | 2500 = 500): string {
   return `https://static.arasaac.org/pictograms/${id}/${id}_${size}.png`;
+}
+
+/** URL of a pictogram's black line drawing on a transparent background. */
+export function lineArtUrl(id: number): string {
+  return `https://static.arasaac.org/pictograms/${id}/${id}_nocolor_500.png`;
 }

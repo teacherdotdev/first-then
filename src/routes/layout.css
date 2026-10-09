@@ -1,11 +1,18 @@
 @import "tailwindcss";
 
+/* Styles for the high-contrast board, e.g. `hc:bg-black`. */
+@custom-variant hc (&:where([data-contrast="high"], [data-contrast="high"] *));
+
 @theme {
   /* Calm, low-stimulation palette: neutral board, a single soft accent. */
   --color-board-bg: #f1f5f9;
   --color-accent: #db2777;
   --color-accent-dark: #be185d;
   --color-done-green: #16a34a;
+
+  /* High-contrast board: bright yellow on black (a common choice for students
+     with cortical visual impairment). */
+  --color-hc-bright: #fde047;
 
   --font-board:
     "Arial Rounded MT Bold", "Helvetica Neue", Helvetica, Arial, system-ui,

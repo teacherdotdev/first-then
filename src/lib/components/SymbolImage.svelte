@@ -1,6 +1,9 @@
-<!-- Renders a SymbolRef's picture: an ARASAAC pictogram or a photo from this device. -->
+<!--
+  Renders a SymbolRef's picture: an ARASAAC pictogram or a photo from this device.
+  With `lineArt`, pictograms are drawn as bright lines for the high-contrast board.
+-->
 <script lang="ts">
-  import { pictogramUrl } from "#lib/arasaac/api.ts";
+  import { lineArtUrl, pictogramUrl } from "#lib/arasaac/api.ts";
   import { uploadObjectUrl, uploadsVersion } from "#lib/uploads/db.ts";
   import type { SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
@@ -8,8 +11,14 @@
   let {
     symbol,
     size = 500,
+    lineArt = false,
     class: className = "",
-  }: { symbol: SymbolRef; size?: 300 | 500; class?: string } = $props();
+  }: {
+    symbol: SymbolRef;
+    size?: 300 | 500;
+    lineArt?: boolean;
+    class?: string;
+  } = $props();
 
   /** undefined while loading, null when the photo is missing. */
   let uploadUrl = $state<string | null | undefined>(undefined);
@@ -41,7 +50,9 @@
 
   const src = $derived(
     symbol.kind === "arasaac"
-      ? pictogramUrl(symbol.id, size)
+      ? lineArt
+        ? lineArtUrl(symbol.id)
+        : pictogramUrl(symbol.id, size)
       : (uploadUrl ?? null),
   );
   const alt = $derived(symbol.label || "Symbol");
@@ -53,7 +64,7 @@
 
 {#if missing}
   <div
-    class="flex h-full w-full flex-col items-center justify-center gap-1 rounded-xl bg-slate-100 p-2 text-center text-slate-500 {className}"
+    class="flex h-full w-full flex-col items-center justify-center gap-1 rounded-xl bg-slate-100 p-2 text-center text-slate-500 hc:bg-neutral-800 hc:text-neutral-300 {className}"
     role="img"
     aria-label={symbol.kind === "upload"
       ? `${alt} (photo not on this device)`
@@ -66,6 +77,16 @@
         : "Picture not loaded"}
     </span>
   </div>
+{:else if src && lineArt && symbol.kind === "arasaac"}
+  <!-- The black lines on transparent are a mask over a bright fill. The hidden
+       image is only there to notice when the picture fails to load. -->
+  <span
+    class="line-art block h-full w-full bg-hc-bright {className}"
+    style:--src={`url("${src}")`}
+    role="img"
+    aria-label={alt}
+  ></span>
+  <img {src} alt="" class="hidden" onerror={() => (failedSrc = src)} />
 {:else if src}
   <img
     {src}
@@ -76,8 +97,15 @@
   />
 {:else}
   <div
-    class="h-full w-full animate-pulse rounded-xl bg-slate-100 {className}"
+    class="h-full w-full animate-pulse rounded-xl bg-slate-100 hc:bg-neutral-800 {className}"
     role="img"
     aria-label={alt}
   ></div>
 {/if}
+
+<style>
+  .line-art {
+    -webkit-mask: var(--src) center / contain no-repeat;
+    mask: var(--src) center / contain no-repeat;
+  }
+</style>
