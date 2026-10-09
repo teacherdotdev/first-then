@@ -6,20 +6,23 @@
   import LabelEditor from "#lib/components/LabelEditor.svelte";
   import SymbolPicker from "#lib/components/SymbolPicker.svelte";
   import { app, headingFor } from "#lib/state.svelte.ts";
-  import type { BoardState, SlotName, SymbolRef } from "#lib/types.ts";
+  import type { BoardState, SymbolRef } from "#lib/types.ts";
 
-  let pickerFor = $state<SlotName | null>(null);
-  let labelFor = $state<SlotName | null>(null);
+  /** Index of the step being changed (0 is a real step, so compare with null). */
+  let pickerFor = $state<number | null>(null);
+  let labelFor = $state<number | null>(null);
 
   /** Board as it was before "Clear", offered back for a few seconds. */
   let undoBoard = $state<BoardState | null>(null);
   let undoTimer: ReturnType<typeof setTimeout> | undefined;
 
-  const isEmpty = $derived(!app.board.first && !app.board.then);
-  const labelSymbol = $derived(labelFor ? app.board[labelFor] : null);
+  const isEmpty = $derived(app.visibleSlots.every((symbol) => !symbol));
+  const labelSymbol = $derived(
+    labelFor === null ? null : app.board.slots[labelFor],
+  );
 
   function pick(ref: SymbolRef) {
-    if (!pickerFor) return;
+    if (pickerFor === null) return;
     app.setSlot(pickerFor, ref);
     pickerFor = null;
   }
@@ -97,11 +100,11 @@
   </div>
 {/if}
 
-{#if pickerFor}
+{#if pickerFor !== null}
   {@const slot = pickerFor}
   <SymbolPicker
     heading={headingFor(app.settings, slot)}
-    current={app.board[slot]}
+    current={app.board.slots[slot]}
     onselect={pick}
     onremove={() => {
       app.clearSlot(slot);
@@ -111,7 +114,7 @@
   />
 {/if}
 
-{#if labelFor && labelSymbol}
+{#if labelFor !== null && labelSymbol}
   {@const slot = labelFor}
   <LabelEditor
     heading={headingFor(app.settings, slot)}

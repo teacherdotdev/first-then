@@ -19,22 +19,28 @@ export type SymbolRef =
       label: string;
     };
 
-export type SlotName = "first" | "then";
+/** How many steps the board shows, left to right. */
+export type SlotCount = 2 | 3 | 4;
+
+export const SLOT_COUNTS: readonly SlotCount[] = [2, 3, 4];
+export const MAX_SLOTS = 4;
 
 export interface BoardState {
-  first: SymbolRef | null;
-  then: SymbolRef | null;
-  /** True once the FIRST activity has been tapped as done (shows a big checkmark). */
-  firstDone: boolean;
+  /**
+   * Symbols in board order, always `MAX_SLOTS` long. Only the first `slotCount` are
+   * shown; the rest are kept so switching layouts back and forth loses nothing.
+   */
+  slots: (SymbolRef | null)[];
+  /** Steps tapped as done (shows a big checkmark). The last shown step never is. */
+  done: boolean[];
 }
 
 export type Language = "en" | "es";
 
 export interface Settings {
-  /** Header word over the left slot. */
-  firstHeading: string;
-  /** Header word over the right slot. */
-  thenHeading: string;
+  slotCount: SlotCount;
+  /** Header words over each step, kept separately for each layout. */
+  headings: Record<SlotCount, string[]>;
   /** Language used for ARASAAC search and keywords. */
   language: Language;
 }
@@ -58,16 +64,21 @@ export const STORAGE_KEYS = {
 } as const;
 
 export const DEFAULT_SETTINGS: Settings = {
-  firstHeading: "FIRST",
-  thenHeading: "THEN",
+  slotCount: 2,
+  headings: {
+    2: ["FIRST", "THEN"],
+    3: ["FIRST", "NEXT", "THEN"],
+    4: ["FIRST", "NEXT", "THEN", "LAST"],
+  },
   language: "en",
 };
 
-export const EMPTY_BOARD: BoardState = {
-  first: null,
-  then: null,
-  firstDone: false,
-};
+export function emptyBoard(): BoardState {
+  return {
+    slots: Array.from({ length: MAX_SLOTS }, () => null),
+    done: Array.from({ length: MAX_SLOTS }, () => false),
+  };
+}
 
 /** Key identifying a symbol regardless of its label (for de-duping recents/favorites). */
 export function symbolKey(ref: SymbolRef): string {
