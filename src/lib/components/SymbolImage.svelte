@@ -1,9 +1,12 @@
 <!--
   Renders a SymbolRef's picture: an ARASAAC pictogram or a photo from this device.
   With `lineArt`, pictograms are drawn as bright lines for the high-contrast board.
+  Pictograms with skin tones ARASAAC can't draw are recolored on this device.
 -->
 <script lang="ts">
   import { lineArtUrl, pictogramUrl } from "#lib/arasaac/api.ts";
+  import { needsRecolor } from "#lib/arasaac/appearance.ts";
+  import { recoloredUrl } from "#lib/arasaac/recolor.ts";
   import { uploadObjectUrl, uploadsVersion } from "#lib/uploads/db.ts";
   import type { SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
@@ -20,27 +23,42 @@
     class?: string;
   } = $props();
 
-  /** undefined while loading, null when the photo is missing. */
-  let uploadUrl = $state<string | null | undefined>(undefined);
+  /** A photo, or a pictogram recolored on this device. */
+  const madeHere = $derived(
+    symbol.kind === "upload" || (!lineArt && needsRecolor(symbol)),
+  );
+
+  /** For `madeHere` pictures: undefined while loading, null when missing or failed. */
+  let localUrl = $state<string | null | undefined>(undefined);
   let failedSrc = $state<string | null>(null);
-  let resolvedId: string | null = null;
+  let resolvedKey: string | null = null;
 
   $effect(() => {
-    if (symbol.kind !== "upload") return;
-    const id = symbol.id;
-    // Re-resolve when photos are renamed, replaced, deleted or restored, so a
-    // revoked object URL is never shown.
-    uploadsVersion();
+    if (!madeHere) return;
+    let key: string;
+    let load: () => Promise<string | null>;
+    if (symbol.kind === "upload") {
+      const id = symbol.id;
+      key = `upload:${id}`;
+      load = () => uploadObjectUrl(id);
+      // Re-resolve when photos are renamed, replaced, deleted or restored, so a
+      // revoked object URL is never shown.
+      uploadsVersion();
+    } else {
+      const { id, skin, hair } = symbol;
+      key = `arasaac:${id}:${skin}:${hair}`;
+      load = () => recoloredUrl(id, { skin, hair });
+    }
     let cancelled = false;
-    // Only show the loading state for a different photo (avoids flicker on refresh).
-    if (resolvedId !== id) uploadUrl = undefined;
-    resolvedId = id;
-    uploadObjectUrl(id).then(
+    // Only show the loading state for a different picture (avoids flicker on refresh).
+    if (resolvedKey !== key) localUrl = undefined;
+    resolvedKey = key;
+    load().then(
       (url) => {
-        if (!cancelled) uploadUrl = url;
+        if (!cancelled) localUrl = url;
       },
       () => {
-        if (!cancelled) uploadUrl = null;
+        if (!cancelled) localUrl = null;
       },
     );
     return () => {
@@ -49,16 +67,17 @@
   });
 
   const src = $derived(
-    symbol.kind === "arasaac"
-      ? lineArt
-        ? lineArtUrl(symbol.id)
-        : pictogramUrl(symbol.id, size, symbol)
-      : (uploadUrl ?? null),
+    madeHere
+      ? (localUrl ?? null)
+      : symbol.kind === "arasaac"
+        ? lineArt
+          ? lineArtUrl(symbol.id)
+          : pictogramUrl(symbol.id, size, symbol)
+        : null,
   );
   const alt = $derived(symbol.label || "Symbol");
   const missing = $derived(
-    (symbol.kind === "upload" && uploadUrl === null) ||
-      (src !== null && failedSrc === src),
+    (madeHere && localUrl === null) || (src !== null && failedSrc === src),
   );
 </script>
 
