@@ -1,7 +1,8 @@
 <!-- One card of the board: big heading, white symbol box, small teacher controls. -->
 <script lang="ts">
   import { app } from "#lib/state.svelte.ts";
-  import type { SymbolRef } from "#lib/types.ts";
+  import { cardColorHex } from "#lib/cardColors.ts";
+  import type { CardColor, SymbolRef } from "#lib/types.ts";
   import Icon from "./Icon.svelte";
   import SymbolImage from "./SymbolImage.svelte";
 
@@ -9,6 +10,7 @@
     index,
     heading,
     symbol,
+    color = "white",
     done = false,
     favorite = false,
     onpick,
@@ -20,6 +22,8 @@
     index: number;
     heading: string;
     symbol: SymbolRef | null;
+    /** Card background around the white symbol box (ignored in high contrast). */
+    color?: CardColor;
     /** Show the big green checkmark (only used with `ontoggledone`). */
     done?: boolean;
     favorite?: boolean;
@@ -32,6 +36,7 @@
 
   const headingId = $derived(`slot-heading-${index}`);
   const label = $derived(symbol?.label ?? "");
+  const tinted = $derived(color !== "white" && !app.settings.highContrast);
 
   const control =
     "inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full bg-slate-100 px-3.5 text-base font-semibold text-slate-600 transition active:bg-slate-200 hc:bg-neutral-800 hc:text-neutral-200 hc:active:bg-neutral-700";
@@ -54,12 +59,17 @@
 
 <!-- A size container: the text scales with the card, however many share the row. -->
 <section
-  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 ring-slate-200 hc:bg-black hc:shadow-none hc:ring-2 hc:ring-neutral-500"
+  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 hc:bg-black hc:shadow-none hc:ring-2 hc:ring-neutral-500 {tinted
+    ? 'ring-black/10'
+    : 'ring-slate-200'}"
+  style:background-color={tinted ? cardColorHex(color) : undefined}
   aria-labelledby={headingId}
 >
   <h2
     id={headingId}
-    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2rem,min(10vmin,16cqw),7.5rem)] leading-none font-extrabold tracking-wide break-words text-slate-800 uppercase hc:text-hc-bright"
+    class="shrink-0 pb-[clamp(0.25rem,1.5vmin,1rem)] text-center text-[clamp(2rem,min(10vmin,16cqw),7.5rem)] leading-none font-extrabold tracking-wide break-words uppercase hc:text-hc-bright {tinted
+      ? 'text-slate-900'
+      : 'text-slate-800'}"
   >
     {heading}
   </h2>

@@ -6,6 +6,7 @@ import {
   isSkinTone,
   pictogramLook,
 } from "#lib/arasaac/appearance.ts";
+import { isCardColor } from "#lib/cardColors.ts";
 import {
   DEFAULT_SETTINGS,
   emptyBoard,
@@ -14,6 +15,7 @@ import {
   STORAGE_KEYS,
   symbolKey,
   type BoardState,
+  type CardColor,
   type Settings,
   type SlotCount,
   type SymbolRef,
@@ -83,10 +85,18 @@ function toHeadings(value: unknown, n: SlotCount): string[] {
   );
 }
 
+function toCardColors(value: unknown, n: SlotCount): CardColor[] {
+  const list = Array.isArray(value) ? value : [];
+  return DEFAULT_SETTINGS.cardColors[n].map((fallback, i) =>
+    isCardColor(list[i]) ? list[i] : fallback,
+  );
+}
+
 function toSettings(value: unknown): Settings {
   const raw: Record<string, unknown> = isRecord(value) ? value : {};
   const appearance = isRecord(raw.appearance) ? raw.appearance : {};
   const saved = isRecord(raw.headings) ? raw.headings : {};
+  const colors = isRecord(raw.cardColors) ? raw.cardColors : {};
   // Settings saved before 3- and 4-step layouts had two flat heading fields.
   const legacy = [raw.firstHeading, raw.thenHeading];
   return {
@@ -97,6 +107,11 @@ function toSettings(value: unknown): Settings {
       2: toHeadings(saved[2] ?? legacy, 2),
       3: toHeadings(saved[3], 3),
       4: toHeadings(saved[4], 4),
+    },
+    cardColors: {
+      2: toCardColors(colors[2], 2),
+      3: toCardColors(colors[3], 3),
+      4: toCardColors(colors[4], 4),
     },
     language:
       raw.language === "en" || raw.language === "es"
@@ -174,6 +189,11 @@ export function headingFor(settings: Settings, index: number): string {
   return (
     settings.headings[n][index]?.trim() || DEFAULT_SETTINGS.headings[n][index]
   );
+}
+
+/** The card color of a step in the current layout. */
+export function cardColorFor(settings: Settings, index: number): CardColor {
+  return settings.cardColors[settings.slotCount][index] ?? "white";
 }
 
 class AppState {
@@ -328,6 +348,22 @@ class AppState {
     const headings = $state.snapshot(this.settings.headings);
     headings[n] = [...DEFAULT_SETTINGS.headings[n]];
     this.updateSettings({ headings });
+  }
+
+  /** Change one step's card color in the current layout. */
+  setCardColor(index: number, color: CardColor): void {
+    const n = this.settings.slotCount;
+    const cardColors = $state.snapshot(this.settings.cardColors);
+    cardColors[n] = replaceAt(cardColors[n], index, color);
+    this.updateSettings({ cardColors });
+  }
+
+  /** Put the current layout's card colors back to white. */
+  resetCardColors(): void {
+    const n = this.settings.slotCount;
+    const cardColors = $state.snapshot(this.settings.cardColors);
+    cardColors[n] = [...DEFAULT_SETTINGS.cardColors[n]];
+    this.updateSettings({ cardColors });
   }
 
   // --- persistence ----------------------------------------------------------

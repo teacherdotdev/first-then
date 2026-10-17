@@ -3,7 +3,7 @@
   steps stack, three stack, and four make a 2×2 grid.
 -->
 <script lang="ts">
-  import { app, headingFor } from "#lib/state.svelte.ts";
+  import { app, cardColorFor, headingFor } from "#lib/state.svelte.ts";
   import type { SlotCount } from "#lib/types.ts";
   import Slot from "./Slot.svelte";
 
@@ -32,6 +32,7 @@
       {index}
       heading={headingFor(app.settings, index)}
       {symbol}
+      color={cardColorFor(app.settings, index)}
       done={app.board.done[index]}
       favorite={symbol ? app.isFavorite(symbol) : false}
       onpick={() => onpick(index)}

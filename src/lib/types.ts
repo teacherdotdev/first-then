@@ -55,6 +55,10 @@ export type SkinTone =
   | "deep"
   | "deepest";
 
+/** Background color of a step's card on the board (the symbol box stays white). */
+export type CardColor =
+  "white" | "red" | "orange" | "yellow" | "green" | "blue" | "purple" | "pink";
+
 /** ARASAAC's seven hair colors for people in pictograms. */
 export type HairColor =
   "blonde" | "red" | "brown" | "darkBrown" | "black" | "gray" | "white";
@@ -69,6 +73,8 @@ export interface Settings {
   slotCount: SlotCount;
   /** Header words over each step, kept separately for each layout. */
   headings: Record<SlotCount, string[]>;
+  /** Card color for each step, kept separately for each layout. */
+  cardColors: Record<SlotCount, CardColor[]>;
   /** Language used for ARASAAC search and keywords. */
   language: Language;
   /** Board shown on black, with ARASAAC symbols as bright line drawings. */
@@ -101,6 +107,11 @@ export const DEFAULT_SETTINGS: Settings = {
     2: ["FIRST", "THEN"],
     3: ["FIRST", "NEXT", "THEN"],
     4: ["FIRST", "NEXT", "THEN", "LAST"],
+  },
+  cardColors: {
+    2: ["white", "white"],
+    3: ["white", "white", "white"],
+    4: ["white", "white", "white", "white"],
   },
   language: "en",
   highContrast: false,

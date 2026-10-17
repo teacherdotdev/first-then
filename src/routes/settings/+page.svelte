@@ -3,7 +3,13 @@
   import AppearancePicker from "#lib/arasaac/AppearancePicker.svelte";
   import Attribution from "#lib/arasaac/Attribution.svelte";
   import Icon from "#lib/components/Icon.svelte";
-  import { app, MAX_HEADING_LENGTH } from "#lib/state.svelte.ts";
+  import { CARD_COLORS } from "#lib/cardColors.ts";
+  import {
+    app,
+    cardColorFor,
+    headingFor,
+    MAX_HEADING_LENGTH,
+  } from "#lib/state.svelte.ts";
   import { DEFAULT_SETTINGS, SLOT_COUNTS, type Language } from "#lib/types.ts";
   import BackupPanel from "#lib/uploads/BackupPanel.svelte";
 
@@ -146,6 +152,66 @@
               />
             {/each}
           </div>
+        </div>
+
+        <div class="flex flex-col gap-3 py-4">
+          <div class="flex items-center justify-between gap-4">
+            <div>
+              <h3 class="font-semibold">Card colors</h3>
+              <p class="text-sm text-slate-600">
+                The color around each step, like a red First and a green Then.
+                {#if app.settings.highContrast}
+                  Not shown while high contrast is on.
+                {/if}
+              </p>
+            </div>
+            <button
+              type="button"
+              class="min-h-11 shrink-0 rounded-full px-3 text-sm font-semibold text-accent-dark hover:bg-pink-50"
+              onclick={() => app.resetCardColors()}
+            >
+              Reset<span class="sr-only"> card colors</span>
+            </button>
+          </div>
+          {#each defaultHeadings, index (index)}
+            {@const selected = cardColorFor(app.settings, index)}
+            <div class="flex flex-col gap-2">
+              <h4
+                id="card-color-{index}"
+                class="text-sm font-bold text-slate-600 uppercase"
+              >
+                {headingFor(app.settings, index)}
+              </h4>
+              <div
+                role="radiogroup"
+                aria-labelledby="card-color-{index}"
+                class="flex flex-wrap gap-2"
+              >
+                {#each CARD_COLORS as swatch (swatch.id)}
+                  {@const checked = swatch.id === selected}
+                  <label
+                    class="relative inline-flex size-11 cursor-pointer items-center justify-center rounded-full border-2 border-slate-300 has-[:focus-visible]:outline-3 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-blue-700 {checked
+                      ? 'ring-3 ring-accent ring-offset-2'
+                      : ''}"
+                    style:background-color={swatch.hex}
+                    title={swatch.label}
+                  >
+                    <input
+                      type="radio"
+                      name="card-color-{index}"
+                      class="sr-only"
+                      {checked}
+                      onchange={() => app.setCardColor(index, swatch.id)}
+                    />
+                    <span class="sr-only">{swatch.label}</span>
+                    {#if checked}
+                      <Icon name="check" class="size-6 text-slate-900" />
+                    {/if}
+                  </label>
+                {/each}
+              </div>
+            </div>
+          {/each}
         </div>
 
         <div class={row}>
