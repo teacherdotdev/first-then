@@ -64,6 +64,8 @@
     "flex flex-col gap-3 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6";
   const sectionTitle =
     "px-1 pb-2 text-sm font-bold tracking-wide text-slate-500 uppercase";
+  const key =
+    "rounded border border-slate-300 bg-slate-50 px-1.5 font-sans text-xs font-semibold text-slate-700";
 </script>
 
 {#snippet segmented(name: string, labelledby: string, choices: Choice[])}
@@ -222,6 +224,17 @@
             </p>
           </div>
           {@render segmented("contrast", "colors-title", colorChoices)}
+        </div>
+
+        <div class={row}>
+          <div>
+            <h3 class="font-semibold">Printing</h3>
+            <p class="text-sm text-slate-600">
+              On the board, press
+              <kbd class={key}>Ctrl+P</kbd>
+              (<kbd class={key}>⌘P</kbd> on a Mac) to print it.
+            </p>
+          </div>
         </div>
       </div>
     </section>

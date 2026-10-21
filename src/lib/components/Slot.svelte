@@ -59,9 +59,9 @@
 
 <!-- A size container: the text scales with the card, however many share the row. -->
 <section
-  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 hc:bg-black hc:shadow-none hc:ring-2 hc:ring-neutral-500 {tinted
-    ? 'ring-black/10'
-    : 'ring-slate-200'}"
+  class="@container flex min-h-0 min-w-0 flex-col rounded-[clamp(1rem,2.5vmin,2rem)] bg-white p-[clamp(0.5rem,2vmin,1.25rem)] shadow-sm ring-1 print:border-2 print:shadow-none print:ring-0 hc:bg-black hc:shadow-none hc:ring-2 hc:ring-neutral-500 hc:print:border-neutral-500 {tinted
+    ? 'ring-black/10 print:border-black/10'
+    : 'ring-slate-200 print:border-slate-300'}"
   style:background-color={tinted ? cardColorHex(color) : undefined}
   aria-labelledby={headingId}
 >
@@ -82,8 +82,8 @@
         onclick={onpick}
         aria-label="Choose a symbol for {heading}"
       >
-        <Icon name="plus" class="size-[clamp(3rem,12vmin,7rem)]" />
-        <span class="text-lg font-semibold">Tap to choose</span>
+        <Icon name="plus" class="size-[clamp(3rem,12vmin,7rem)] print:hidden" />
+        <span class="text-lg font-semibold print:hidden">Tap to choose</span>
       </button>
     {:else if ontoggledone}
       <button
@@ -98,7 +98,7 @@
         {@render picture(symbol)}
         {#if done}
           <span
-            class="done-overlay @container-size absolute inset-0 flex items-center justify-center bg-white/45 hc:bg-black/55"
+            class="done-overlay @container-size absolute inset-0 flex items-center justify-center bg-white/45 print:hidden hc:bg-black/55"
             aria-hidden="true"
           >
             <!-- Sized by both sides so short cards (3+ steps on a phone) keep their word visible. -->
@@ -119,9 +119,9 @@
     {/if}
   </div>
 
-  <!-- Teacher controls: kept small and quiet so the board stays clean. -->
+  <!-- Teacher controls: kept small and quiet so the board stays clean. Not printed. -->
   <div
-    class="flex min-h-12 shrink-0 items-end justify-center gap-2 pt-2 @max-[10rem]:gap-1"
+    class="flex min-h-12 shrink-0 items-end justify-center gap-2 pt-2 @max-[10rem]:gap-1 print:hidden"
     class:invisible={!symbol}
     aria-hidden={!symbol}
   >

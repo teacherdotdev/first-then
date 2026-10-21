@@ -50,11 +50,11 @@
 
 <main
   data-contrast={app.settings.highContrast ? "high" : undefined}
-  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-bg px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))] hc:bg-black"
+  class="flex h-screen-safe flex-col gap-[clamp(0.25rem,1.5vmin,0.75rem)] overflow-hidden bg-board-bg px-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-left))] pt-[max(clamp(0.25rem,1vmin,0.75rem),env(safe-area-inset-top))] pb-[max(clamp(0.5rem,2.5vmin,1.75rem),env(safe-area-inset-bottom))] print:bg-white print:px-0 print:pt-0 print:pb-0 hc:bg-black"
 >
   <h1 class="sr-only">First / Then board</h1>
 
-  <nav class="flex shrink-0 items-center gap-2" aria-label="Board">
+  <nav class="flex shrink-0 items-center gap-2 print:hidden" aria-label="Board">
     <BrandMenu />
     <button
       type="button"
@@ -82,7 +82,7 @@
 
 {#if undoBoard}
   <div
-    class="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4"
+    class="fixed inset-x-0 bottom-4 z-40 flex justify-center px-4 print:hidden"
     role="status"
   >
     <div

@@ -66,3 +66,17 @@
     min-height: 100dvh;
   }
 }
+
+/* Printing (Ctrl+P / ⌘P) gives just the board, filling one page. */
+@page {
+  margin: 0.5in;
+}
+
+@media print {
+  /* Keep the board's colors (the black high-contrast board, the yellow line art,
+     which is a background behind a mask) even with "Background graphics" off. */
+  main {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
